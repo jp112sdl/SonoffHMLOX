@@ -87,7 +87,7 @@ bool doWifiConnect() {
     WiFiManagerParameter custom_ip("custom_ip", "IP-Adresse", (String(SonoffNetConfig.ip) != "0.0.0.0") ? SonoffNetConfig.ip : "", IPSIZE);
     WiFiManagerParameter custom_netmask("custom_netmask", "Netzmaske", (String(SonoffNetConfig.netmask) != "0.0.0.0") ? SonoffNetConfig.netmask : "", IPSIZE);
     WiFiManagerParameter custom_gw("custom_gw", "Gateway",  (String(SonoffNetConfig.gw) != "0.0.0.0") ? SonoffNetConfig.gw : "", IPSIZE);
-    WiFiManagerParameter custom_text("<br/><br>Statische IP (wenn leer, dann DHCP):");
+    WiFiManagerParameter custom_text("<br/><br><div>Statische IP (wenn leer, dann DHCP):</div>");
     wifiManager.addParameter(&custom_sonoffmodel);
     wifiManager.addParameter(&custom_ccuip);
     //wifiManager.addParameter(&custom_loxusername);
