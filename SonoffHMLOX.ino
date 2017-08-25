@@ -203,13 +203,10 @@ void setup() {
   pinMode(LEDPin, OUTPUT);
 
   WebServer.on("/0", webSwitchRelayOff);
-  WebServer.on("/off", webSwitchRelayOff);
   WebServer.on("/1", webSwitchRelayOn);
-  WebServer.on("/on", webSwitchRelayOn);
   WebServer.on("/2", webToggleRelay);
   WebServer.on("/toggle", webToggleRelay);
-  WebServer.on("/state", replyRelayState);
-  WebServer.on("/getstate", replyRelayState);
+  WebServer.on("/getState", replyRelayState);
   WebServer.on("/bootConfigMode", setBootConfigMode);
   WebServer.on("/reboot", []() {
     ESP.restart();
@@ -272,6 +269,8 @@ void loop() {
   String udpMessage = handleUDP();
   if (udpMessage == "bootConfigMode")
     setBootConfigMode;
+  if (udpMessage == "reboot")
+    ESP.restart();
   if (udpMessage == "1" || udpMessage == "on")
     switchRelay(RELAYSTATE_ON);
   if (udpMessage == "0" || udpMessage == "off")
