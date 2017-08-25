@@ -1,0 +1,9 @@
+[submodule "libraries/WiFiManager"]
+	path = libraries/WiFiManager
+	url = https://github.com/jp112sdl/WiFiManager
+[submodule "libraries/ArduinoJson"]
+	path = libraries/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson/
+[submodule "libraries/hlw8012"]
+	path = libraries/hlw8012
+	url = https://bitbucket.org/xoseperez/hlw8012.git
