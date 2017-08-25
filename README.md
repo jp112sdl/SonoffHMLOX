@@ -6,4 +6,4 @@
 
 Für Informationen zur Einrichtung etc., bitte das [Wiki](https://github.com/jp112sdl/SonoffHMLOX/wiki) benutzen.
 
-![Bild](Images/SonoffPow_HM_Web.png)
+<img src="Images/SonoffPow_HM_Web.png" width="300">
