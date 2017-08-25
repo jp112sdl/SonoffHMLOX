@@ -187,7 +187,7 @@ void configHtml() {
     page += FPSTR(HTTP_CONF_POW_MEASURE_INTERVAL);
   }
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    if (GlobalConfig.SonoffModel = SonoffModel_Pow) {
+    if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
       page += FPSTR(HTTP_CONF_HM_POW);
       page.replace("{hmpowvar}", HomeMaticConfig.PowerVariableName);
     }
