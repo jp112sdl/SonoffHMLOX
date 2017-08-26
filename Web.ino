@@ -21,14 +21,14 @@ void versionHtml() {
 }
 
 void replyPowerJSON() {
-  if (GlobalConfig.SonoffModel = SonoffModel_Pow)
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
     WebServer.send(200, "text/plain", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
   else
     WebServer.send(200, "text/plain", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
 }
 
 void replyPower() {
-  if (GlobalConfig.SonoffModel = SonoffModel_Pow)
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
     WebServer.send(200, "text/plain", "<voltage>" + String(hlw8012value.voltage) + "</voltage><current>" + String(hlw8012value.current) + "</current><powerw>" + String(hlw8012value.powerw) + "</powerw><powerva>" + String(hlw8012value.powerva) + "</powerva>");
   else
     WebServer.send(200, "text/plain", "not supported");

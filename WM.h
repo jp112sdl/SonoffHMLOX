@@ -36,7 +36,7 @@ const char HTTP_FORM_PARAM_PWD[] PROGMEM   = "<div id='div_{i}'><input type='pas
 
 const char HTTP_FORM_END[] PROGMEM        = "<div><button type='submit'>Speichern</button></div></form>";
 const char HTTP_SCAN_LINK[] PROGMEM       = "<br/><div class=\"c\"><a href=\"/wifi\">Scan</a></div>";
-const char HTTP_SAVED[] PROGMEM           = "<div>Daten gespeichert!<br/>Netzwerkverbindung wird hergestellt.<br/><br/>Bei Fehler bitte nochmals mit dem AP verbinden!</div>";
+const char HTTP_SAVED[] PROGMEM           = "<div>Daten gespeichert!<br/>Die WLAN-Netzwerkverbindung wird hergestellt...<br/><br/>Sollte keine Verbindung zustandekommen, bitte nochmals mit dem AP verbinden!</div>";
 const char HTTP_END[] PROGMEM             = "</div><script>setBackendType();</script></body></html>";
 
 #define WIFI_MANAGER_MAX_PARAMS 15

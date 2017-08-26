@@ -18,10 +18,3 @@ String handleUDP() {
     return message;
   } else return "";
 }
-
-bool sendUDP(String msg) {
-  Serial.println("Sending UDP Message = \"" + String(msg) + "\" to " + String(GlobalConfig.ccuIP) + ":" + String(LoxoneConfig.UDPPort));
-  UDPClient.UDP.beginPacket(GlobalConfig.ccuIP, atoi(LoxoneConfig.UDPPort));
-  UDPClient.UDP.write(msg.c_str());
-  UDPClient.UDP.endPacket();
-}
