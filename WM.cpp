@@ -28,9 +28,11 @@ WiFiManagerParameter::WiFiManagerParameter(const char *id, const char *placehold
 WiFiManagerParameter::WiFiManagerParameter(const char *id, const char *placeholder, const char *defaultValue, int length, byte type) {
   init(id, placeholder, defaultValue, length, type, "");
 }
+
 WiFiManagerParameter::WiFiManagerParameter(const char *id, const char *placeholder, const char *defaultValue, int length, byte type, const char *custom) {
     init(id, placeholder, defaultValue, length, type, custom);
 }
+
 void WiFiManagerParameter::init(const char *id, const char *placeholder, const char *defaultValue, int length, byte type, const char *custom) {
   _id = id;
   _placeholder = placeholder;
@@ -43,7 +45,6 @@ void WiFiManagerParameter::init(const char *id, const char *placeholder, const c
   if (defaultValue != NULL) {
     strncpy(_value, defaultValue, length);
   }
-
   _customHTML = custom;
 }
 

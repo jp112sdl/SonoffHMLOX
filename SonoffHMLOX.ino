@@ -20,6 +20,7 @@
 #include <HLW8012.h>
 #include <Arduino.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include <ESP8266Ping.h>
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -34,6 +35,8 @@
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
+#define PING_ENABLED        true
+#define PINGINTERVALSECONDS  300
 
 const String FIRMWARE_VERSION = "1.0.2";
 const char GITHUB_SSL_FINGERPRINT[] PROGMEM = "35:85:74:EF:67:35:A7:CE:40:69:50:F3:C0:F6:80:CF:80:3B:2E:19";
@@ -99,6 +102,7 @@ unsigned long LastMillisKeyPress = 0;
 unsigned long TimerStartMillis = 0;
 unsigned long LastFirmwareCheckMillis = 0;
 unsigned long LastHwlMillis = 0;
+unsigned long LastPingMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
 bool newFirmwareAvailable = false;
@@ -261,6 +265,8 @@ void loop() {
     TimerStartMillis = millis();
   if (LastHwlMillis > millis())
     LastHwlMillis = millis();
+  if (LastPingMillis > millis())
+    LastPingMillis = millis();
   if (LastFirmwareCheckMillis > millis())
     LastFirmwareCheckMillis = millis();
 
@@ -315,6 +321,15 @@ void loop() {
   if (LastFirmwareCheckMillis == 0 || millis() - LastFirmwareCheckMillis > GlobalConfig.FirmwareCheckIntervalHours * 1000 * 60 * 60) {
     LastFirmwareCheckMillis = millis();
     newFirmwareAvailable = checkGithubForNewFWVersion();
+  }
+
+  if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
+    LastPingMillis = millis();
+    Serial.print("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ");
+    const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
+    IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+    bool ret = Ping.ping(pingHost);
+    Serial.println((ret) ? "success":"fail");
   }
 
   //POW Handling
