@@ -35,6 +35,29 @@ bool loadSystemConfig() {
           GlobalConfig.restoreOldRelayState = json["restoreOldState"];
           GlobalConfig.SonoffModel = json["sonoffmodel"];
           GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
+
+          float fVal = (json["currentmultiplier"]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.CurrentMultiplier != fVal) {
+              HLW8012Calibration.CurrentMultiplier = fVal;
+              Serial.println("Setting Custom HLW8012 Calibration. CurrentMultiplier = " + String(fVal));
+            }
+          }
+          fVal = (json["voltagemultiplier"]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.VoltageMultiplier != fVal) {
+              HLW8012Calibration.VoltageMultiplier =  fVal;
+              Serial.println("Setting Custom HLW8012 Calibration. VoltageMultiplier = " + String(fVal));
+            }
+          }
+          fVal = (json["powermultiplier"]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.PowerMultiplier != fVal) {
+              HLW8012Calibration.PowerMultiplier =  fVal;
+              Serial.println("Setting Custom HLW8012 Calibration. PowerMultiplier = " + String(fVal));
+            }
+          }
+
         } else {
           Serial.println(F("\nloadSystemConfig ERROR loading config"));
         }
@@ -70,6 +93,9 @@ bool saveSystemConfig() {
   json["measureinterval"] = GlobalConfig.MeasureInterval;
   if (GlobalConfig.MeasureInterval == 0) GlobalConfig.MeasureInterval = 60;
   json["sonoffmodel"] = GlobalConfig.SonoffModel;
+  json["currentmultiplier"] = HLW8012Calibration.CurrentMultiplier;
+  json["voltagemultiplier"] = HLW8012Calibration.VoltageMultiplier;
+  json["powermultiplier"] = HLW8012Calibration.PowerMultiplier;
 
   SPIFFS.remove("/" + configJsonFile);
   File configFile = SPIFFS.open("/" + configJsonFile, "w");

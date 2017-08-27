@@ -3,22 +3,51 @@ void sethlwInterrupts() {
   attachInterrupt(CF_PIN, hlw8012_cf_interrupt, CHANGE);
 }
 
-void hlwcalibrate() {
-  unsigned long timeout = millis();
-  while ((millis() - timeout) < 10000) {
-    delay(1);
+void hlwcalibrate(byte exp_voltage, byte exp_power ) {
+  bool tmpOldState = RELAYSTATE_ON;
+  if (RelayState == RELAYSTATE_OFF) {
+    tmpOldState = RELAYSTATE_OFF;
+    switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   }
-  hlw8012.expectedActivePower(60.0);
-  hlw8012.expectedVoltage(230.0);
-  hlw8012.expectedCurrent(60.0 / 230.0);
-  Serial.print(F("[HLW] New current multiplier : ")); Serial.println(hlw8012.getCurrentMultiplier());
-  Serial.print(F("[HLW] New voltage multiplier : ")); Serial.println(hlw8012.getVoltageMultiplier());
-  Serial.print(F("[HLW] New power multiplier   : ")); Serial.println(hlw8012.getPowerMultiplier());
+
+  delay(5000);
+
+  hlw8012.expectedActivePower(exp_power);
+  hlw8012.expectedVoltage(exp_voltage);
+  hlw8012.expectedCurrent(exp_power / exp_power);
+
+  delay(1000);
+
+  float newCurrentMultiplier = hlw8012.getCurrentMultiplier();
+  float newVoltageMultiplier = hlw8012.getVoltageMultiplier();
+  float newPowerMultiplier = hlw8012.getPowerMultiplier();
+
+  Serial.print(F("[HLW] New current multiplier : ")); Serial.println(String(newCurrentMultiplier));
+  Serial.print(F("[HLW] New voltage multiplier : ")); Serial.println(String(newVoltageMultiplier));
+  Serial.print(F("[HLW] New power multiplier   : ")); Serial.println(String(newPowerMultiplier));
+
+  HLW8012Calibration.CurrentMultiplier = newCurrentMultiplier;
+  HLW8012Calibration.VoltageMultiplier = newVoltageMultiplier;
+  HLW8012Calibration.PowerMultiplier = newPowerMultiplier;
+
+  hlw8012.setCurrentMultiplier(HLW8012Calibration.CurrentMultiplier);
+  hlw8012.setVoltageMultiplier(HLW8012Calibration.VoltageMultiplier);
+  hlw8012.setPowerMultiplier(HLW8012Calibration.PowerMultiplier);
+
+  saveSystemConfig();
+
+  if (tmpOldState == RELAYSTATE_OFF)
+    switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
 }
 
 void hlw_init() {
   hlw8012.begin(CF_PIN, CF1_PIN, SEL_PIN, CURRENT_MODE, true);
   hlw8012.setResistors(CURRENT_RESISTOR, VOLTAGE_RESISTOR_UPSTREAM, VOLTAGE_RESISTOR_DOWNSTREAM);
+
+  hlw8012.setCurrentMultiplier(HLW8012Calibration.CurrentMultiplier);
+  hlw8012.setVoltageMultiplier(HLW8012Calibration.VoltageMultiplier);
+  hlw8012.setPowerMultiplier(HLW8012Calibration.PowerMultiplier);
+
   Serial.print(F("[HLW] Default current multiplier : ")); Serial.println(hlw8012.getCurrentMultiplier());
   Serial.print(F("[HLW] Default voltage multiplier : ")); Serial.println(hlw8012.getVoltageMultiplier());
   Serial.print(F("[HLW] Default power multiplier   : ")); Serial.println(hlw8012.getPowerMultiplier());

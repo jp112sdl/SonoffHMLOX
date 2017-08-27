@@ -51,7 +51,7 @@ void webSwitchRelayOn() {
     TimerSeconds = 0;
     Serial.println(F("webSwitchRelayOn(), keine Parameter, TimerSeconds = 0"));
   }
-  switchRelay(RELAYSTATE_ON,NO_TRANSMITSTATE);
+  switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   sendDefaultWebCmdReply();
 }
 
@@ -60,12 +60,36 @@ void webToggleRelay() {
   sendDefaultWebCmdReply();
 }
 void webSwitchRelayOff() {
-  switchRelay(RELAYSTATE_OFF,NO_TRANSMITSTATE);
+  switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
   sendDefaultWebCmdReply();
 }
 
 void replyRelayState() {
   sendDefaultWebCmdReply();
+}
+
+void calibrateHtml() {
+  if (GlobalConfig.SonoffModel != SonoffModel_Pow) {
+    WebServer.send(200, "text/plain", "Only for Sonoff POW");
+  } else {
+    String page = FPSTR(HTTP_HEAD);
+    //page += FPSTR(HTTP_SCRIPT);
+    page += FPSTR(HTTP_ALL_STYLE);
+    if (GlobalConfig.BackendType == BackendType_HomeMatic)
+      page += FPSTR(HTTP_HM_STYLE);
+    if (GlobalConfig.BackendType == BackendType_Loxone)
+      page += FPSTR(HTTP_LOX_STYLE);
+    page += FPSTR(HTTP_HEAD_END);
+    page += F("<div class='fbg'>");
+
+    page += F("<form method='post' action='control'>");
+
+    page += F("</form></div>");
+
+    page += F("/body></html>");
+    WebServer.sendHeader("Content-Length", String(page.length()));
+    WebServer.send(200, "text/html", page);
+  }
 }
 
 void defaultHtml() {

@@ -128,6 +128,12 @@ struct hlw8012value_t {
   float powerva = 0;
 } hlw8012value;
 
+struct hlw8012calibrationdata_t {
+  float CurrentMultiplier = 13670.96;
+  float VoltageMultiplier = 441250.69;
+  float PowerMultiplier  = 12168954.98;
+} HLW8012Calibration;
+
 #define CURRENT_MODE                    HIGH
 #define CURRENT_RESISTOR                0.001
 #define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
@@ -225,6 +231,7 @@ void setup() {
   WebServer.on("/version", versionHtml);
   WebServer.on("/firmware", versionHtml);
   WebServer.on("/config", configHtml);
+  WebServer.on("/calibrate", calibrateHtml);  
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
   httpUpdater.setup(&WebServer);
