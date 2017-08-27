@@ -20,6 +20,7 @@
 #include <HLW8012.h>
 #include <Arduino.h>
 #include <ESP8266HTTPUpdateServer.h>
+#include <ESP8266Ping.h>
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -34,8 +35,10 @@
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
+#define PING_ENABLED        true
+#define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.2";
+const String FIRMWARE_VERSION = "1.0.3";
 const char GITHUB_SSL_FINGERPRINT[] PROGMEM = "35:85:74:EF:67:35:A7:CE:40:69:50:F3:C0:F6:80:CF:80:3B:2E:19";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
@@ -99,6 +102,7 @@ unsigned long LastMillisKeyPress = 0;
 unsigned long TimerStartMillis = 0;
 unsigned long LastFirmwareCheckMillis = 0;
 unsigned long LastHwlMillis = 0;
+unsigned long LastPingMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
 bool newFirmwareAvailable = false;
@@ -233,7 +237,7 @@ void setup() {
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
     if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON);
+      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
     } else {
       switchRelay(RELAYSTATE_OFF, (getStateCUxD(HomeMaticConfig.ChannelName + ".STATE", "State") == "true"));
     }
@@ -241,9 +245,9 @@ void setup() {
 
   if (GlobalConfig.BackendType == BackendType_Loxone) {
     if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON);
+      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
     } else {
-      switchRelay(RELAYSTATE_OFF);
+      switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
     }
   }
 
@@ -261,6 +265,8 @@ void loop() {
     TimerStartMillis = millis();
   if (LastHwlMillis > millis())
     LastHwlMillis = millis();
+  if (LastPingMillis > millis())
+    LastPingMillis = millis();
   if (LastFirmwareCheckMillis > millis())
     LastFirmwareCheckMillis = millis();
 
@@ -274,9 +280,9 @@ void loop() {
   if (udpMessage == "reboot")
     ESP.restart();
   if (udpMessage == "1" || udpMessage == "on")
-    switchRelay(RELAYSTATE_ON);
+    switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   if (udpMessage == "0" || udpMessage == "off")
-    switchRelay(RELAYSTATE_OFF);
+    switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
   if (udpMessage == "2" || udpMessage == "toggle")
     toggleRelay(false);
   if (udpMessage.indexOf("1?t=") != -1) {
@@ -287,7 +293,7 @@ void loop() {
     } else {
       Serial.println(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"));
     }
-    switchRelay(RELAYSTATE_ON);
+    switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   }
 
   //eingehende HTTP Anfragen abarbeiten
@@ -317,6 +323,15 @@ void loop() {
     newFirmwareAvailable = checkGithubForNewFWVersion();
   }
 
+  if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
+    LastPingMillis = millis();
+    Serial.print("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ");
+    const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
+    IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+    bool ret = Ping.ping(pingHost);
+    Serial.println((ret) ? "success" : "fail");
+  }
+
   //POW Handling
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
     handleHLW8012();
@@ -325,9 +340,6 @@ void loop() {
   delay(10);
 }
 
-void switchRelay(bool toState) {
-  switchRelay(toState, false);
-}
 void switchRelay(bool toState, bool transmitState) {
   RelayState = toState;
   Serial.println("Switch Relay to " + String(toState) + " with transmitState = " + String(transmitState));
@@ -336,13 +348,12 @@ void switchRelay(bool toState, bool transmitState) {
     TimerSeconds = 0;
   }
 
-  if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + "=" + String(RelayState));
-
   digitalWrite(RelayPin, RelayState);
   setLastState(RelayState);
 
   if (transmitState) {
     if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(RelayState));
+    if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + "=" + String(RelayState));
   }
 
   if (GlobalConfig.SonoffModel == SonoffModel_Switch) {

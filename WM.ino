@@ -17,6 +17,7 @@ bool doWifiConnect() {
     Serial.println(F("Connecting WLAN the classic way..."));
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
+    WiFi.hostname("Sonoff-" + String(GlobalConfig.DeviceName));
     WiFi.begin(_ssid.c_str(), _psk.c_str());
     int waitCounter = 0;
     if (String(SonoffNetConfig.ip) != "0.0.0.0")
@@ -41,20 +42,20 @@ bool doWifiConnect() {
     wifiManager.setDebugOutput(wifiManagerDebugOutput);
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
-    WiFiManagerParameter custom_ccuip("ccu", "IP der CCU2", GlobalConfig.ccuIP, IPSIZE);
+    WiFiManagerParameter custom_ccuip("ccu", "IP der CCU2", GlobalConfig.ccuIP, IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
     //WiFiManagerParameter custom_loxusername("loxusername", "Loxone Username", "", VARIABLESIZE);
     //WiFiManagerParameter custom_loxpassword("loxpassword", "Loxone Password", "", VARIABLESIZE,4);
-    WiFiManagerParameter custom_loxudpport("loxudpport", "Loxone UDP Port", LoxoneConfig.UDPPort, 10);
-    WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE);
+    WiFiManagerParameter custom_loxudpport("loxudpport", "Loxone UDP Port", LoxoneConfig.UDPPort, 10, 0, "pattern='[0-9]{1,5}'");
+    WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
     char*chrRestoreOldState = "0";
     if (GlobalConfig.restoreOldRelayState) chrRestoreOldState =  "1" ;
     WiFiManagerParameter custom_cbrestorestate("restorestate", "Schaltzustand wiederherstellen: ", chrRestoreOldState, 8, 1);
 
-    WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE);
+    WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
     String del = String(GlobalConfig.MeasureInterval);
     char delBuf[8];
     del.toCharArray(delBuf, 8);
-    WiFiManagerParameter custom_powermeasureinterval("custom_powermeasureinterval_pow", "Messintervall", delBuf, 8);
+    WiFiManagerParameter custom_powermeasureinterval("custom_powermeasureinterval_pow", "Messintervall", delBuf, 8, 0, "pattern='[0-9]{1,4}'");
 
     String options = "";
     switch (GlobalConfig.BackendType) {
@@ -84,9 +85,9 @@ bool doWifiConnect() {
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
 
-    WiFiManagerParameter custom_ip("custom_ip", "IP-Adresse", (String(SonoffNetConfig.ip) != "0.0.0.0") ? SonoffNetConfig.ip : "", IPSIZE);
-    WiFiManagerParameter custom_netmask("custom_netmask", "Netzmaske", (String(SonoffNetConfig.netmask) != "0.0.0.0") ? SonoffNetConfig.netmask : "", IPSIZE);
-    WiFiManagerParameter custom_gw("custom_gw", "Gateway",  (String(SonoffNetConfig.gw) != "0.0.0.0") ? SonoffNetConfig.gw : "", IPSIZE);
+    WiFiManagerParameter custom_ip("custom_ip", "IP-Adresse", (String(SonoffNetConfig.ip) != "0.0.0.0") ? SonoffNetConfig.ip : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
+    WiFiManagerParameter custom_netmask("custom_netmask", "Netzmaske", (String(SonoffNetConfig.netmask) != "0.0.0.0") ? SonoffNetConfig.netmask : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
+    WiFiManagerParameter custom_gw("custom_gw", "Gateway",  (String(SonoffNetConfig.gw) != "0.0.0.0") ? SonoffNetConfig.gw : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
     WiFiManagerParameter custom_text("<br/><br><div>Statische IP (wenn leer, dann DHCP):</div>");
     wifiManager.addParameter(&custom_sonoffmodel);
     wifiManager.addParameter(&custom_ccuip);
