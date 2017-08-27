@@ -21,6 +21,7 @@
 #include <Arduino.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266Ping.h>
+#include <ESP8266mDNS.h>
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -71,6 +72,7 @@ struct globalconfig_t {
   byte BackendType = BackendType_HomeMatic;
   byte FirmwareCheckIntervalHours = 24;
   byte SonoffModel = SonoffModel_Switch;
+  String Hostname = "Sonoff";
 } GlobalConfig;
 
 struct hmconfig_t {
@@ -229,6 +231,10 @@ void setup() {
   WebServer.onNotFound(defaultHtml);
 
   WebServer.begin();
+
+  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
+    Serial.println("Error setting up MDNS responder!");
+  }
 
   GlobalConfig.lastRelayState = getLastState();
 

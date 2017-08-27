@@ -17,7 +17,7 @@ bool doWifiConnect() {
     Serial.println(F("Connecting WLAN the classic way..."));
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
-    WiFi.hostname("Sonoff-" + String(GlobalConfig.DeviceName));
+    WiFi.hostname(GlobalConfig.Hostname);
     WiFi.begin(_ssid.c_str(), _psk.c_str());
     int waitCounter = 0;
     if (String(SonoffNetConfig.ip) != "0.0.0.0")

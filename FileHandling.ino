@@ -34,6 +34,7 @@ bool loadSystemConfig() {
           GlobalConfig.BackendType = json["backendtype"];
           GlobalConfig.restoreOldRelayState = json["restoreOldState"];
           GlobalConfig.SonoffModel = json["sonoffmodel"];
+          GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
         } else {
           Serial.println(F("\nloadSystemConfig ERROR loading config"));
         }
