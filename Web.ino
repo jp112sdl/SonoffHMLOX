@@ -51,7 +51,7 @@ void webSwitchRelayOn() {
     TimerSeconds = 0;
     Serial.println(F("webSwitchRelayOn(), keine Parameter, TimerSeconds = 0"));
   }
-  switchRelay(RELAYSTATE_ON);
+  switchRelay(RELAYSTATE_ON,NO_TRANSMITSTATE);
   sendDefaultWebCmdReply();
 }
 
@@ -60,7 +60,7 @@ void webToggleRelay() {
   sendDefaultWebCmdReply();
 }
 void webSwitchRelayOff() {
-  switchRelay(RELAYSTATE_OFF);
+  switchRelay(RELAYSTATE_OFF,NO_TRANSMITSTATE);
   sendDefaultWebCmdReply();
 }
 
