@@ -21,6 +21,7 @@
 #include <Arduino.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266Ping.h>
+#include <ESP8266mDNS.h>
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -38,7 +39,7 @@
 #define PING_ENABLED        true
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.3";
+const String FIRMWARE_VERSION = "1.0.4";
 const char GITHUB_SSL_FINGERPRINT[] PROGMEM = "35:85:74:EF:67:35:A7:CE:40:69:50:F3:C0:F6:80:CF:80:3B:2E:19";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
@@ -71,6 +72,7 @@ struct globalconfig_t {
   byte BackendType = BackendType_HomeMatic;
   byte FirmwareCheckIntervalHours = 24;
   byte SonoffModel = SonoffModel_Switch;
+  String Hostname = "Sonoff";
 } GlobalConfig;
 
 struct hmconfig_t {
@@ -119,6 +121,14 @@ struct udp_t {
 } UDPClient;
 
 //HLW8012
+#define CURRENT_MODE                    HIGH
+#define CURRENT_RESISTOR                0.001
+#define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
+#define VOLTAGE_RESISTOR_DOWNSTREAM     ( 1000 ) // Real 1.009k
+#define defaultCurrentMultiplier        13670.9
+#define defaultVoltageMultiplier        441250.69
+#define defaultPowerMultiplier          12168954.98
+
 struct hlw8012value_t {
   float voltage = 0;
   float current = 0;
@@ -126,11 +136,14 @@ struct hlw8012value_t {
   float powerva = 0;
 } hlw8012value;
 
-#define CURRENT_MODE                    HIGH
-#define CURRENT_RESISTOR                0.001
-#define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
-#define VOLTAGE_RESISTOR_DOWNSTREAM     ( 1000 ) // Real 1.009k
+struct hlw8012calibrationdata_t {
+  float CurrentMultiplier = defaultCurrentMultiplier;
+  float VoltageMultiplier = defaultVoltageMultiplier;
+  float PowerMultiplier  = defaultPowerMultiplier;
+} HLW8012Calibration;
+
 HLW8012 hlw8012;
+
 void ICACHE_RAM_ATTR hlw8012_cf1_interrupt() {
   hlw8012.cf1_interrupt();
 }
@@ -190,17 +203,17 @@ void setup() {
 
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
+      Serial.println("\nSonoff Modell = Switch / S20");
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
-      Serial.println("\nSonoff Modell = Switch / S20");
       break;
     case SonoffModel_Pow:
+      Serial.println("\nSonoff Modell = POW");
       LEDPin = 15;
       On = HIGH;
       Off = LOW;
       hlw_init();
-      Serial.println("\nSonoff Modell = POW");
       break;
   }
 
@@ -223,12 +236,17 @@ void setup() {
   WebServer.on("/version", versionHtml);
   WebServer.on("/firmware", versionHtml);
   WebServer.on("/config", configHtml);
+  WebServer.on("/calibrate", calibrateHtml);
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
   httpUpdater.setup(&WebServer);
   WebServer.onNotFound(defaultHtml);
 
   WebServer.begin();
+
+  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
+    Serial.println("Error setting up MDNS responder!");
+  }
 
   GlobalConfig.lastRelayState = getLastState();
 
