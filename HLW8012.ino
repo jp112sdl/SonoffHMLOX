@@ -3,6 +3,18 @@ void sethlwInterrupts() {
   attachInterrupt(CF_PIN, hlw8012_cf_interrupt, CHANGE);
 }
 
+void hlwundocalibrate() {
+  HLW8012Calibration.CurrentMultiplier = defaultCurrentMultiplier;
+  HLW8012Calibration.VoltageMultiplier = defaultVoltageMultiplier;
+  HLW8012Calibration.PowerMultiplier = defaultPowerMultiplier;
+
+  hlw8012.setCurrentMultiplier(HLW8012Calibration.CurrentMultiplier);
+  hlw8012.setVoltageMultiplier(HLW8012Calibration.VoltageMultiplier);
+  hlw8012.setPowerMultiplier(HLW8012Calibration.PowerMultiplier);
+
+  saveSystemConfig();
+}
+
 void hlwcalibrate(byte exp_voltage, byte exp_power ) {
   bool tmpOldState = RELAYSTATE_ON;
   if (RelayState == RELAYSTATE_OFF) {
@@ -10,7 +22,7 @@ void hlwcalibrate(byte exp_voltage, byte exp_power ) {
     switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   }
 
-  delay(5000);
+  delay(10000);
 
   hlw8012.expectedActivePower(exp_power);
   hlw8012.expectedVoltage(exp_voltage);
@@ -22,9 +34,10 @@ void hlwcalibrate(byte exp_voltage, byte exp_power ) {
   float newVoltageMultiplier = hlw8012.getVoltageMultiplier();
   float newPowerMultiplier = hlw8012.getPowerMultiplier();
 
-  Serial.print(F("[HLW] New current multiplier : ")); Serial.println(String(newCurrentMultiplier));
-  Serial.print(F("[HLW] New voltage multiplier : ")); Serial.println(String(newVoltageMultiplier));
-  Serial.print(F("[HLW] New power multiplier   : ")); Serial.println(String(newPowerMultiplier));
+  Serial.print(F("[HLW] New  multipliers : current = ")); Serial.print(String(newCurrentMultiplier));
+  Serial.print(F(" / voltage = ")); Serial.print(String(newVoltageMultiplier));
+  Serial.print(F(" / power = ")); Serial.print(String(newPowerMultiplier));
+  Serial.println();
 
   HLW8012Calibration.CurrentMultiplier = newCurrentMultiplier;
   HLW8012Calibration.VoltageMultiplier = newVoltageMultiplier;
@@ -48,9 +61,9 @@ void hlw_init() {
   hlw8012.setVoltageMultiplier(HLW8012Calibration.VoltageMultiplier);
   hlw8012.setPowerMultiplier(HLW8012Calibration.PowerMultiplier);
 
-  Serial.print(F("[HLW] Default current multiplier : ")); Serial.println(hlw8012.getCurrentMultiplier());
-  Serial.print(F("[HLW] Default voltage multiplier : ")); Serial.println(hlw8012.getVoltageMultiplier());
-  Serial.print(F("[HLW] Default power multiplier   : ")); Serial.println(hlw8012.getPowerMultiplier());
+  Serial.print(F("[HLW] multipliers : current = ")); Serial.print(hlw8012.getCurrentMultiplier());
+  Serial.print(F(" / voltage = ")); Serial.print(hlw8012.getVoltageMultiplier());
+  Serial.print(F(" / power = ")); Serial.print(hlw8012.getPowerMultiplier());
   Serial.println();
   sethlwInterrupts();
 }
@@ -63,11 +76,11 @@ void handleHLW8012() {
     hlw8012value.powerva = hlw8012.getApparentPower();
     hlw8012value.voltage = hlw8012.getVoltage();
     hlw8012value.current = hlw8012.getCurrent();
-    Serial.print(F("[HLW] Active Power (W)    : ")); Serial.println(hlw8012value.powerw);
-    Serial.print(F("[HLW] Voltage (V)         : ")); Serial.println(hlw8012value.voltage);
-    Serial.print(F("[HLW] Current (A)         : ")); Serial.println(hlw8012value.current);
-    Serial.print(F("[HLW] Apparent Power (VA) : ")); Serial.println(hlw8012value.powerva);
-    Serial.print(F("[HLW] Power Factor (%)    : ")); Serial.println((int) (100 * hlw8012.getPowerFactor()));
+    Serial.print(F("[HLW]: ")); Serial.print(hlw8012value.powerw);
+    Serial.print(F("W, ")); Serial.print(hlw8012value.voltage);
+    Serial.print(F("V, ")); Serial.print(hlw8012value.current);
+    Serial.print(F("A, ")); Serial.print(hlw8012value.powerva);
+    Serial.print(F("VA, Power Factor (%) : ")); Serial.print((int) (100 * hlw8012.getPowerFactor()));
     Serial.println();
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
       if (String(HomeMaticConfig.PowerVariableName) != "") {

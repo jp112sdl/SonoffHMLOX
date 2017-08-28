@@ -138,6 +138,9 @@ struct hlw8012calibrationdata_t {
 #define CURRENT_RESISTOR                0.001
 #define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
 #define VOLTAGE_RESISTOR_DOWNSTREAM     ( 1000 ) // Real 1.009k
+#define defaultCurrentMultiplier        13670.9
+#define defaultVoltageMultiplier        441250.69
+#define defaultPowerMultiplier          12168954.98
 HLW8012 hlw8012;
 void ICACHE_RAM_ATTR hlw8012_cf1_interrupt() {
   hlw8012.cf1_interrupt();
@@ -198,17 +201,17 @@ void setup() {
 
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
+      Serial.println("\nSonoff Modell = Switch / S20");
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
-      Serial.println("\nSonoff Modell = Switch / S20");
       break;
     case SonoffModel_Pow:
+      Serial.println("\nSonoff Modell = POW");
       LEDPin = 15;
       On = HIGH;
       Off = LOW;
       hlw_init();
-      Serial.println("\nSonoff Modell = POW");
       break;
   }
 
