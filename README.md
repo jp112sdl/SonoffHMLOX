@@ -6,4 +6,6 @@
 
 Für Informationen zur Einrichtung etc., bitte das [Wiki](https://github.com/jp112sdl/SonoffHMLOX/wiki) benutzen.
 
+Die neueste komppilierte Firmware findet ihr in den [Releases](https://github.com/jp112sdl/SonoffHMLOX/releases/latest).
+
 <img src="Images/SonoffPow_HM_Web.png" width="300"> <img src="Images/Sonoff_LOX_Web.png" width="300">
