@@ -121,6 +121,14 @@ struct udp_t {
 } UDPClient;
 
 //HLW8012
+#define CURRENT_MODE                    HIGH
+#define CURRENT_RESISTOR                0.001
+#define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
+#define VOLTAGE_RESISTOR_DOWNSTREAM     ( 1000 ) // Real 1.009k
+#define defaultCurrentMultiplier        13670.9
+#define defaultVoltageMultiplier        441250.69
+#define defaultPowerMultiplier          12168954.98
+
 struct hlw8012value_t {
   float voltage = 0;
   float current = 0;
@@ -129,19 +137,13 @@ struct hlw8012value_t {
 } hlw8012value;
 
 struct hlw8012calibrationdata_t {
-  float CurrentMultiplier = 13670.96;
-  float VoltageMultiplier = 441250.69;
-  float PowerMultiplier  = 12168954.98;
+  float CurrentMultiplier = defaultCurrentMultiplier;
+  float VoltageMultiplier = defaultVoltageMultiplier;
+  float PowerMultiplier  = defaultPowerMultiplier;
 } HLW8012Calibration;
 
-#define CURRENT_MODE                    HIGH
-#define CURRENT_RESISTOR                0.001
-#define VOLTAGE_RESISTOR_UPSTREAM       ( 5 * 470000 ) // Real: 2280k
-#define VOLTAGE_RESISTOR_DOWNSTREAM     ( 1000 ) // Real 1.009k
-#define defaultCurrentMultiplier        13670.9
-#define defaultVoltageMultiplier        441250.69
-#define defaultPowerMultiplier          12168954.98
 HLW8012 hlw8012;
+
 void ICACHE_RAM_ATTR hlw8012_cf1_interrupt() {
   hlw8012.cf1_interrupt();
 }
@@ -234,7 +236,7 @@ void setup() {
   WebServer.on("/version", versionHtml);
   WebServer.on("/firmware", versionHtml);
   WebServer.on("/config", configHtml);
-  WebServer.on("/calibrate", calibrateHtml);  
+  WebServer.on("/calibrate", calibrateHtml);
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
   httpUpdater.setup(&WebServer);
