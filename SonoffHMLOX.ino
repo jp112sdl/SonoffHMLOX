@@ -103,7 +103,8 @@ byte Off = 0;
 unsigned long LastMillisKeyPress = 0;
 unsigned long TimerStartMillis = 0;
 unsigned long LastFirmwareCheckMillis = 0;
-unsigned long LastHwlMillis = 0;
+unsigned long LastHlwMeasureMillis = 0;
+unsigned long LastHlwCollectMillis = 0;
 unsigned long LastPingMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
@@ -128,6 +129,17 @@ struct udp_t {
 #define defaultCurrentMultiplier        13670.9
 #define defaultVoltageMultiplier        441250.69
 #define defaultPowerMultiplier          12168954.98
+#define HLWMAXCOLLECTCOUNT              20 //Anzahl Werte für Mittelwertbildung
+#define HLWDISCARDNUM                   4  //Wieviele Werte sollen verworfen werden
+#define HLWCOLLECTINTERVAL              500 //ms
+
+struct hlwvalues_ {
+  float ActivePower[HLWMAXCOLLECTCOUNT];
+  float ApparentPower[HLWMAXCOLLECTCOUNT];
+  float Voltage[HLWMAXCOLLECTCOUNT];
+  float Current[HLWMAXCOLLECTCOUNT];
+  int HlwCollectCounter = 0;
+} hlwvalues;
 
 struct hlw8012value_t {
   float voltage = 0;
@@ -281,8 +293,10 @@ void loop() {
     LastMillisKeyPress = millis();
   if (TimerStartMillis > millis())
     TimerStartMillis = millis();
-  if (LastHwlMillis > millis())
-    LastHwlMillis = millis();
+  if (LastHlwMeasureMillis > millis())
+    LastHlwMeasureMillis = millis();
+  if (LastHlwCollectMillis > millis())
+    LastHlwCollectMillis = millis();
   if (LastPingMillis > millis())
     LastPingMillis = millis();
   if (LastFirmwareCheckMillis > millis())
@@ -377,6 +391,11 @@ void switchRelay(bool toState, bool transmitState) {
   if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
     digitalWrite(LEDPin, (RelayState ? On : Off));
   }
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+    LastHlwCollectMillis = millis();
+    LastHlwMeasureMillis = millis();
+  }
 }
 
 void toggleRelay(bool transmitState) {
@@ -388,12 +407,12 @@ void toggleRelay(bool transmitState) {
 }
 
 void blinkLED(int count) {
-  digitalWrite(LEDPin, Off);
+  byte oldState = digitalRead(LEDPin);
   delay(100);
   for (int i = 0; i < count; i++) {
-    digitalWrite(LEDPin, On);
+    digitalWrite(LEDPin, !oldState);
     delay(100);
-    digitalWrite(LEDPin, Off);
+    digitalWrite(LEDPin, oldState);
     delay(100);
   }
   delay(200);
