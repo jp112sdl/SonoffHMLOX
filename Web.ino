@@ -1,10 +1,10 @@
 const char HTTP_TITLE_LABEL[] PROGMEM = "<div class='l lt'><label>{v}</label><hr /></div>";
-const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label>{ls}</label></div>";
+const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label id='_ls'>{ls}</label></div>";
 const char HTTP_FW_LABEL[] PROGMEM = "<div class='l c k'><label>Firmware: {fw}</label></div>";
 const char HTTP_POWER_LABEL[] PROGMEM = "<table><tr><td class=tdl>Spannung</td><td class=tdr id='_v'>{hlw_v}</td><td class=tdl>V</td></tr><tr><td class=tdl>Strom</td><td class=tdr id='_c'>{hlw_c}</td><td class=tdl>A</td><tr><td class=tdl>Leistung</td><td class=tdr id='_w'>{hlw_w}</td><td class=tdl>W</td></tr><tr><td class=tdl>Leistung</td><td class=tdr id='_va'>{hlw_va}</td><td class=tdl>VA</td></tr></table>";
-const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' value='1' type='submit'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='{ts}'></td></tr></table></div><div><button name='btnAction' value='0' type='submit'>AUS</button></div></span>";
+const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' onclick='SetState(\"/1\"); return false;'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='{ts}'></td></tr></table></div><div><button name='btnAction' onclick='SetState(\"/0\"); return false;'>AUS</button></div></span>";
 const char HTTP_CONFIG_BUTTON[] PROGMEM = "<div></div><hr /><div></div><div><input class='lnkbtn' type='button' value='Konfiguration' onclick=\"window.location.href='/config'\" /></div>";
-const char HTTP_ALL_STYLE[] PROGMEM = "<style> .green {color:green;} .red {color:red;} .tdr {float:right;} .tdl { width: 1px;} input.lnkbtn,input.fwbtn {-webkit-appearance: button;-moz-appearance: button;appearance: button;} body {background-color: #303030;} input.lnkbtn,button,input.fwbtn{color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;padding:5px;} input,button,input.lnkbtn,input.fwbtn {border: 0;border-radius: 0.3rem;} .c{text-align: center;} .k{font-style:italic;} .fbg {background-color: #eee;} div,input{padding:5px;font-size:1em;} input{width: 95%} .i{text-align: right; width: 45%;} body{text-align: center;font-family:verdana;} .l{no-repeat left center;background-size: 1em;} .q{float: right;width: 64px;text-align: right;} .ls {font-weight: bold;text-align: center;font-size: 300%;} .lt{font-size: 150%;text-align: center;} table{width:100%;} td{max-width:50%;font-weight: bold;} input.fwbtn {background-color: #ff0000;}";
+const char HTTP_ALL_STYLE[] PROGMEM = "<style>.green {color:green;} .red {color:red;} .tdr {float:right;} .tdl { width: 1px;} input.lnkbtn,input.fwbtn {-webkit-appearance: button;-moz-appearance: button;appearance: button;} body {background-color: #303030;} input.lnkbtn,button,input.fwbtn{cursor: pointer;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;padding:5px;} input,button,input.lnkbtn,input.fwbtn {border: 0;border-radius: 0.3rem;} .c{text-align: center;} .k{font-style:italic;} .fbg {background-color: #eee;} div,input{padding:5px;font-size:1em;} input{width: 95%} .i{text-align: right; width: 45%;} body{text-align: center;font-family:verdana;} .l{no-repeat left center;background-size: 1em;} .q{float: right;width: 64px;text-align: right;} .ls {font-weight: bold;text-align: center;font-size: 300%;} .lt{font-size: 150%;text-align: center;} table{width:100%;} td{max-width:50%;font-weight: bold;} input.fwbtn {background-color: #ff0000;}";
 const char HTTP_HM_STYLE[]  PROGMEM = "input.lnkbtn,button{background-color:#1fa3ec;}</style>";
 const char HTTP_LOX_STYLE[] PROGMEM = "input.lnkbtn,button{background-color:#83b817;}</style>";
 const char HTTP_HOME_BUTTON[] PROGMEM = "<div><input class='lnkbtn' type='button' value='Zur&uuml;ck' onclick=\"window.location.href='/'\" /></div>";
@@ -19,7 +19,8 @@ const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><i
 const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}'></div>";
 const char HTTP_STATUSLABEL[] PROGMEM = "<div class='l c'>{sl}</div>";
 const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div>";
-const char HTTP_CUSTOMPOWSCRIPT[] PROGMEM = "<script>function Get(u){ var h = new XMLHttpRequest(); h.open('GET',u,false); h.send(null); return h.responseText; }  setTimeout(function(){ refresh(); }, {mi}); function refresh() { var json_obj = JSON.parse(Get('/getPowerJSON')); document.getElementById('_v').innerHTML = json_obj.Voltage; document.getElementById('_c').innerHTML = json_obj.Current; document.getElementById('_w').innerHTML = json_obj.PowerW; document.getElementById('_va').innerHTML = json_obj.PowerVA; setTimeout(function(){ refresh() }, {mi}); } </script>";
+const char HTTP_CUSTOMSCRIPT[] PROGMEM = "function Get(u){ var h = new XMLHttpRequest(); h.open('GET',u,false); h.send(null); return h.responseText; } function SetState(v) { var json_obj = JSON.parse(Get(v)); refreshState(json_obj); } setTimeout(function(){ refreshState(); }, 10000); function refreshState(json_obj) { if (json_obj == null) json_obj = JSON.parse(Get('/getState')); document.getElementById('_ls').innerHTML = (('1' == json_obj.state) ? 'AN' : 'AUS'); setTimeout(function(){ refreshState() }, 10000); } ";
+const char HTTP_CUSTOMPOWSCRIPT[] PROGMEM = "setTimeout(function(){ refresh(); }, {mi}); function refresh() { var json_obj = JSON.parse(Get('/getPowerJSON')); document.getElementById('_v').innerHTML = json_obj.Voltage; document.getElementById('_c').innerHTML = json_obj.Current; document.getElementById('_w').innerHTML = json_obj.PowerW; document.getElementById('_va').innerHTML = json_obj.PowerVA; setTimeout(function(){ refresh() }, {mi}); } ";
 
 void webSwitchRelayOn() {
   if (WebServer.args() > 0) {
@@ -182,12 +183,13 @@ void defaultHtml() {
     page.replace("{fwurl}", fwurl);
   }
 
-  page += F("</form></div>");
+  page += F("</form></div><script>");
+  page += FPSTR(HTTP_CUSTOMSCRIPT);
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     page += FPSTR(HTTP_CUSTOMPOWSCRIPT);
     page.replace("{mi}", String(GlobalConfig.MeasureInterval * 1000));
   }
-  page += F("</div></body></html>");
+  page += F("</script></div></body></html>");
   WebServer.sendHeader("Content-Length", String(page.length()));
   WebServer.send(200, "text/html", page);
 }
@@ -296,11 +298,11 @@ void configHtml() {
 void sendDefaultWebCmdReply() {
   String reply = createReplyString();
   Serial.println("Sending Web-Reply: " + reply);
-  WebServer.send(200, "text/plain", reply);
+  WebServer.send(200, "application/json", reply);
 }
 
 String createReplyString() {
-  return "<state>" + String(digitalRead(RelayPin)) + "</state><timer>" + String(TimerSeconds) + "</timer><resttimer>" + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + "</resttimer>";
+  return "{\"state\": " + String(digitalRead(RelayPin)) + ", \"timer\": " + String(TimerSeconds) + ", \"resttimer\": " + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + "}";
 }
 
 bool checkGithubForNewFWVersion() {
@@ -336,9 +338,9 @@ void versionHtml() {
 
 void replyPowerJSON() {
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    WebServer.send(200, "text/plain", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
   else
-    WebServer.send(200, "text/plain", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
 }
 
 void replyPower() {
