@@ -127,7 +127,7 @@ struct udp_t {
 #define defaultVoltageMultiplier        441250.69
 #define defaultPowerMultiplier          12168954.98
 #define HLWMAXCOLLECTCOUNT              20 //Anzahl Werte für Mittelwertbildung
-#define HLWDISCARDNUM                   4  //Wieviele Werte sollen verworfen werden
+#define HLWDISCARDNUM                   6  //Wieviele Werte sollen verworfen werden
 #define HLWCOLLECTINTERVAL              500 //ms
 
 struct hlwvalues_ {
@@ -387,6 +387,10 @@ void switchRelay(bool toState, bool transmitState) {
     LastHlwCollectMillis = millis();
     LastHlwMeasureMillis = millis();
   }
+}
+
+bool getRelayState() {
+  return (digitalRead(RelayPin) == RELAYSTATE_ON);
 }
 
 void toggleRelay(bool transmitState) {

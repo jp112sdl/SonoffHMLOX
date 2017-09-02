@@ -71,60 +71,59 @@ void hlw_init() {
 void handleHLW8012() {
   if (!OTAStart && millis() - LastHlwCollectMillis > HLWCOLLECTINTERVAL) {
     LastHlwCollectMillis = millis();
-    hlwvalues.HlwCollectCounter++;
-    if (hlwvalues.HlwCollectCounter > HLWMAXCOLLECTCOUNT) {
+    if (getRelayState() == RELAYSTATE_ON) {
+      if (hlwvalues.HlwCollectCounter == HLWMAXCOLLECTCOUNT) {
+        sort(hlwvalues.ActivePower, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.ApparentPower, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.Voltage, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.Current, HLWMAXCOLLECTCOUNT);
 
-      sort(hlwvalues.ActivePower, HLWMAXCOLLECTCOUNT);
-      sort(hlwvalues.ApparentPower, HLWMAXCOLLECTCOUNT);
-      sort(hlwvalues.Voltage, HLWMAXCOLLECTCOUNT);
-      sort(hlwvalues.Current, HLWMAXCOLLECTCOUNT);
+        float wtemp = 0, vatemp = 0, vtemp = 0, ctemp = 0;
 
-      float wtemp = 0, vatemp = 0, vtemp = 0, ctemp = 0;
+        for (int i = HLWDISCARDNUM; i < HLWMAXCOLLECTCOUNT - HLWDISCARDNUM; i++) {
+          wtemp += hlwvalues.ActivePower[i];
+          vatemp += hlwvalues.ApparentPower[i];
+          vtemp += hlwvalues.Voltage[i];
+          ctemp += hlwvalues.Current[i];
+        }
 
-      for (int i = HLWDISCARDNUM; i < HLWMAXCOLLECTCOUNT - HLWDISCARDNUM; i++) {
-        wtemp += hlwvalues.ActivePower[i];
-        vatemp += hlwvalues.ApparentPower[i];
-        vtemp += hlwvalues.Voltage[i];
-        ctemp += hlwvalues.Current[i];
+        wtemp =  wtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        vatemp = vatemp / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        vtemp =  vtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        ctemp =  ctemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+
+        hlw8012value.powerw = wtemp;
+        hlw8012value.powerva = vatemp;
+        hlw8012value.voltage = vtemp;
+        hlw8012value.current = ctemp;
+        hlwvalues.HlwCollectCounter = 0;
       }
-
-      wtemp =  wtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
-      vatemp = vatemp / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
-      vtemp =  vtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
-      ctemp =  ctemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
-
-      hlw8012value.powerw = wtemp;
-      hlw8012value.powerva = vatemp;
-      hlw8012value.voltage = vtemp;
-      hlw8012value.current = ctemp;
-      hlwvalues.HlwCollectCounter = 0;
+    } else {
+        hlw8012value.powerw = 0;
+        hlw8012value.powerva = 0;
+        hlw8012value.voltage = 0;
+        hlw8012value.current = 0;      
     }
 
     hlwvalues.ActivePower[hlwvalues.HlwCollectCounter] = hlw8012.getActivePower();
     hlwvalues.ApparentPower[hlwvalues.HlwCollectCounter] = hlw8012.getApparentPower();
     hlwvalues.Voltage[hlwvalues.HlwCollectCounter] = hlw8012.getVoltage();
     hlwvalues.Current[hlwvalues.HlwCollectCounter] = hlw8012.getCurrent();
+    hlwvalues.HlwCollectCounter++;
   }
 
   if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHlwMeasureMillis) > (GlobalConfig.MeasureInterval * 1000)) {
     LastHlwMeasureMillis = millis();
-    if (RelayState == On) {
-      Serial.print(F("[HLW]: ")); Serial.print(hlw8012value.powerw);
-      Serial.print(F("W, ")); Serial.print(hlw8012value.voltage);
-      Serial.print(F("V, ")); Serial.print(hlw8012value.current);
-      Serial.print(F("A, ")); Serial.print(hlw8012value.powerva);
-      Serial.print(F("VA, Power Factor (%) : ")); Serial.print((int) (100 * hlw8012.getPowerFactor()));
-      Serial.println();
-      if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-        if (String(HomeMaticConfig.PowerVariableName) != "") {
-          setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));
-        }
+    Serial.print(F("[HLW]: ")); Serial.print(hlw8012value.powerw);
+    Serial.print(F("W, ")); Serial.print(hlw8012value.voltage);
+    Serial.print(F("V, ")); Serial.print(hlw8012value.current);
+    Serial.print(F("A, ")); Serial.print(hlw8012value.powerva);
+    Serial.print(F("VA, Power Factor (%) : ")); Serial.print((int) (100 * hlw8012.getPowerFactor()));
+    Serial.println();
+    if (GlobalConfig.BackendType == BackendType_HomeMatic) {
+      if (String(HomeMaticConfig.PowerVariableName) != "") {
+        setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));
       }
-    } else {
-      hlw8012value.powerw  = 0;
-      hlw8012value.powerva = 0;
-      hlw8012value.voltage = 0;
-      hlw8012value.current = 0;
     }
   }
 }
