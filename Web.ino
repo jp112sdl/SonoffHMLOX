@@ -309,35 +309,8 @@ String createReplyString() {
   return "{\"state\": " + String(digitalRead(RelayPin)) + ", \"timer\": " + String(TimerSeconds) + ", \"resttimer\": " + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + "}";
 }
 
-bool checkGithubForNewFWVersion() {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.setTimeout(HTTPTimeOut);
-
-    http.begin(FPSTR(GITHUB_REPO_URL), FPSTR(GITHUB_SSL_FINGERPRINT));
-    int httpCode = http.GET();
-    String payload = "";
-
-    if (httpCode != 200) {
-      Serial.println("HTTP failed with HTTP Error Code " + String(httpCode));
-      http.end();
-      return false;
-    } else {
-      payload = http.getString();
-      http.end();
-    }
-
-    Serial.println("Length = " + String(payload.length()));
-    payload = payload.substring(payload.indexOf("\"tag_name\":") + 12, payload.length());
-    payload = payload.substring(0, payload.indexOf("\""));
-    Serial.println("FW on Github: " + payload);
-    Serial.println("FW local    : " + FIRMWARE_VERSION);
-    return (payload != FIRMWARE_VERSION);
-  }
-}
-
 void versionHtml() {
-  WebServer.send(200, "text/plain", "<fw>" + FIRMWARE_VERSION + "</fw><update_available>" + (newFirmwareAvailable ? "yes" : "no") + "</update_available>");
+  WebServer.send(200, "text/plain", "<fw>" + FIRMWARE_VERSION + "</fw>");
 }
 
 void replyPowerJSON() {
