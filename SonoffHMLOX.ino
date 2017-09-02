@@ -39,7 +39,7 @@
 #define PING_ENABLED        true
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.4";
+const String FIRMWARE_VERSION = "1.0.5";
 const char GITHUB_SSL_FINGERPRINT[] PROGMEM = "35:85:74:EF:67:35:A7:CE:40:69:50:F3:C0:F6:80:CF:80:3B:2E:19";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
