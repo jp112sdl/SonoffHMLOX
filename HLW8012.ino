@@ -68,14 +68,52 @@ void hlw_init() {
   sethlwInterrupts();
 }
 
-
 void handleHLW8012() {
-  if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHwlMillis) > (GlobalConfig.MeasureInterval * 1000)) {
-    LastHwlMillis = millis();
-    hlw8012value.powerw  = hlw8012.getActivePower();
-    hlw8012value.powerva = hlw8012.getApparentPower();
-    hlw8012value.voltage = hlw8012.getVoltage();
-    hlw8012value.current = hlw8012.getCurrent();
+  if (!OTAStart && millis() - LastHlwCollectMillis > HLWCOLLECTINTERVAL) {
+    LastHlwCollectMillis = millis();
+    if (getRelayState() == RELAYSTATE_ON) {
+      if (hlwvalues.HlwCollectCounter == HLWMAXCOLLECTCOUNT) {
+        sort(hlwvalues.ActivePower, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.ApparentPower, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.Voltage, HLWMAXCOLLECTCOUNT);
+        sort(hlwvalues.Current, HLWMAXCOLLECTCOUNT);
+
+        float wtemp = 0, vatemp = 0, vtemp = 0, ctemp = 0;
+
+        for (int i = HLWDISCARDNUM; i < HLWMAXCOLLECTCOUNT - HLWDISCARDNUM; i++) {
+          wtemp += hlwvalues.ActivePower[i];
+          vatemp += hlwvalues.ApparentPower[i];
+          vtemp += hlwvalues.Voltage[i];
+          ctemp += hlwvalues.Current[i];
+        }
+
+        wtemp =  wtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        vatemp = vatemp / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        vtemp =  vtemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+        ctemp =  ctemp  / (HLWMAXCOLLECTCOUNT - (HLWDISCARDNUM * 2));
+
+        hlw8012value.powerw = wtemp;
+        hlw8012value.powerva = vatemp;
+        hlw8012value.voltage = vtemp;
+        hlw8012value.current = ctemp;
+        hlwvalues.HlwCollectCounter = 0;
+      }
+    } else {
+        hlw8012value.powerw = 0;
+        hlw8012value.powerva = 0;
+        hlw8012value.voltage = 0;
+        hlw8012value.current = 0;      
+    }
+
+    hlwvalues.ActivePower[hlwvalues.HlwCollectCounter] = hlw8012.getActivePower();
+    hlwvalues.ApparentPower[hlwvalues.HlwCollectCounter] = hlw8012.getApparentPower();
+    hlwvalues.Voltage[hlwvalues.HlwCollectCounter] = hlw8012.getVoltage();
+    hlwvalues.Current[hlwvalues.HlwCollectCounter] = hlw8012.getCurrent();
+    hlwvalues.HlwCollectCounter++;
+  }
+
+  if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHlwMeasureMillis) > (GlobalConfig.MeasureInterval * 1000)) {
+    LastHlwMeasureMillis = millis();
     Serial.print(F("[HLW]: ")); Serial.print(hlw8012value.powerw);
     Serial.print(F("W, ")); Serial.print(hlw8012value.voltage);
     Serial.print(F("V, ")); Serial.print(hlw8012value.current);
@@ -90,3 +128,16 @@ void handleHLW8012() {
   }
 }
 
+void sort(float *number, int n) {
+  float temp = 0;
+  int j, i;
+  for (i = 1; i < n; i++) {
+    for (j = 0; j < n - i; j++) {
+      if (number[j] > number[j + 1]) {
+        temp = number[j];
+        number[j] = number[j + 1];
+        number[j + 1] = temp;
+      }
+    }
+  }
+}

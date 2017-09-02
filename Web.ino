@@ -1,10 +1,10 @@
 const char HTTP_TITLE_LABEL[] PROGMEM = "<div class='l lt'><label>{v}</label><hr /></div>";
-const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label>{ls}</label></div>";
+const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label id='_ls'>{ls}</label></div>";
 const char HTTP_FW_LABEL[] PROGMEM = "<div class='l c k'><label>Firmware: {fw}</label></div>";
 const char HTTP_POWER_LABEL[] PROGMEM = "<table><tr><td class=tdl>Spannung</td><td class=tdr id='_v'>{hlw_v}</td><td class=tdl>V</td></tr><tr><td class=tdl>Strom</td><td class=tdr id='_c'>{hlw_c}</td><td class=tdl>A</td><tr><td class=tdl>Leistung</td><td class=tdr id='_w'>{hlw_w}</td><td class=tdl>W</td></tr><tr><td class=tdl>Leistung</td><td class=tdr id='_va'>{hlw_va}</td><td class=tdl>VA</td></tr></table>";
-const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' value='1' type='submit'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='{ts}'></td></tr></table></div><div><button name='btnAction' value='0' type='submit'>AUS</button></div></span>";
+const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' onclick='SetState(\"/1?t=\"+document.getElementById(\"timer\").value); return false;'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value=''></td></tr></table></div><div><button name='btnAction' onclick='SetState(\"/0\"); return false;'>AUS</button></div></span>";
 const char HTTP_CONFIG_BUTTON[] PROGMEM = "<div></div><hr /><div></div><div><input class='lnkbtn' type='button' value='Konfiguration' onclick=\"window.location.href='/config'\" /></div>";
-const char HTTP_ALL_STYLE[] PROGMEM = "<style> .green {color:green;} .red {color:red;} .tdr {float:right;} .tdl { width: 1px;} input.lnkbtn,input.fwbtn {-webkit-appearance: button;-moz-appearance: button;appearance: button;} body {background-color: #303030;} input.lnkbtn,button,input.fwbtn{color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;padding:5px;} input,button,input.lnkbtn,input.fwbtn {border: 0;border-radius: 0.3rem;} .c{text-align: center;} .k{font-style:italic;} .fbg {background-color: #eee;} div,input{padding:5px;font-size:1em;} input{width: 95%} .i{text-align: right; width: 45%;} body{text-align: center;font-family:verdana;} .l{no-repeat left center;background-size: 1em;} .q{float: right;width: 64px;text-align: right;} .ls {font-weight: bold;text-align: center;font-size: 300%;} .lt{font-size: 150%;text-align: center;} table{width:100%;} td{max-width:50%;font-weight: bold;} input.fwbtn {background-color: #ff0000;}";
+const char HTTP_ALL_STYLE[] PROGMEM = "<style>.green {color:green;} .red {color:red;} .tdr {float:right;} .tdl { width: 1px;} input.lnkbtn,input.fwbtn {-webkit-appearance: button;-moz-appearance: button;appearance: button;} body {background-color: #303030;} input.lnkbtn,button,input.fwbtn{cursor: pointer;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;padding:5px;} input,button,input.lnkbtn,input.fwbtn {border: 0;border-radius: 0.3rem;} .c{text-align: center;} .k{font-style:italic;} .fbg {background-color: #eee;} div,input{padding:5px;font-size:1em;} input{width: 95%} .i{text-align: right; width: 45%;} body{text-align: center;font-family:verdana;} .l{no-repeat left center;background-size: 1em;} .q{float: right;width: 64px;text-align: right;} .ls {font-weight: bold;text-align: center;font-size: 300%;} .lt{font-size: 150%;text-align: center;} table{width:100%;} td{max-width:50%;font-weight: bold;} input.fwbtn {display: none; background-color: #ff0000;}";
 const char HTTP_HM_STYLE[]  PROGMEM = "input.lnkbtn,button{background-color:#1fa3ec;}</style>";
 const char HTTP_LOX_STYLE[] PROGMEM = "input.lnkbtn,button{background-color:#83b817;}</style>";
 const char HTTP_HOME_BUTTON[] PROGMEM = "<div><input class='lnkbtn' type='button' value='Zur&uuml;ck' onclick=\"window.location.href='/'\" /></div>";
@@ -14,12 +14,14 @@ const char HTTP_CALIB_INPUT[] PROGMEM = "<div><table><tr><td>Last (W):</td><td a
 const char HTTP_DOCALIB_BUTTON[] PROGMEM = "<div><button name='doCalibrate' value='1' type='submit'>Kalibrieren</button></div>";
 const char HTTP_UNDOCALIB_BUTTON[] PROGMEM = "<div><button name='undoCalibrate' value='1' type='submit'>Kalib. Reset</button></div>";
 const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input type='text' id='ccuip' name='ccuip' pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$' maxlength=16 placeholder='{st}' value='{ccuip}'></div><div><label>Ger&auml;tename:</label></div><div><input type='text' id='devicename' name='devicename' pattern='[A-Za-z0-9]+' placeholder='Ger&auml;tename' value='{dn}'></div><div><label>Schaltzustand wiederherstellen:</label></div><div><input id='rstate' type='checkbox' name='rstate' {rs} value=1></div>";
-const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' value='{mi}'></div>";
+const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
 const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><input type='text' id='lox_udpport' pattern='[0-9]{1,5}' name='lox_udpport' placeholder='UDP Port' value='{udp}'></div>";
 const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}'></div>";
 const char HTTP_STATUSLABEL[] PROGMEM = "<div class='l c'>{sl}</div>";
-const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div>";
-const char HTTP_CUSTOMPOWSCRIPT[] PROGMEM = "<script>function Get(u){ var h = new XMLHttpRequest(); h.open('GET',u,false); h.send(null); return h.responseText; }  setTimeout(function(){ refresh(); }, {mi}); function refresh() { var json_obj = JSON.parse(Get('/getPowerJSON')); document.getElementById('_v').innerHTML = json_obj.Voltage; document.getElementById('_c').innerHTML = json_obj.Current; document.getElementById('_w').innerHTML = json_obj.PowerW; document.getElementById('_va').innerHTML = json_obj.PowerVA; setTimeout(function(){ refresh() }, {mi}); } </script>";
+const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' id='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div>";
+const char HTTP_CUSTOMSCRIPT[] PROGMEM = "var timerRun = false; function Get(u){ var h = new XMLHttpRequest(); h.open('GET',u,false); h.send(null); return h.responseText; } function SetState(v) { document.getElementById('timer').value = ''; var json_obj = JSON.parse(Get(v)); refreshState(json_obj, false); } function isInt(v){return !isNaN(v) && parseInt(Number(v))==v && !isNaN(parseInt(v,10));} function timerdecrement(t,rekursiv) { if (rekursiv) timerRun=false; if (isInt(t.placeholder)) {t.placeholder = t.placeholder-1; if (t.placeholder > 0 && !timerRun) timerRun = setTimeout(function(){ timerdecrement(t, true) }, 1000); else setTimeout(function(){ refreshState(null, false);}, 1000);  }} function refreshState(json_obj, rekursiv) { if (json_obj == null) json_obj = JSON.parse(Get('/getState')); document.getElementById('_ls').innerHTML = (('1' == json_obj.state) ? 'AN' : 'AUS'); var timer = document.getElementById('timer'); timer.placeholder = json_obj.resttimer; if (timer.placeholder == 0) timer.placeholder = 'Sekunden'; else timerdecrement(timer); if (rekursiv) setTimeout(function(){ refreshState(null, true); }, 10000); } /*init refresh:*/ refreshState(null, true); ";
+const char HTTP_CUSTOMUPDATESCRIPT[] PROGMEM = "function updateCheck() { var json_obj = JSON.parse(Get('{fwjsurl}')); if (json_obj.tag_name != '{fw}'){document.getElementById('fwbtn').style.display='block';document.getElementById('fwbtn').title = json_obj.tag_name; } }; setTimeout(function(){ updateCheck() }, 3000); ";
+const char HTTP_CUSTOMPOWSCRIPT[] PROGMEM = "setTimeout(function(){ refresh(); }, {mi}); function refresh() { var json_obj = JSON.parse(Get('/getPowerJSON')); document.getElementById('_v').innerHTML = json_obj.Voltage; document.getElementById('_c').innerHTML = json_obj.Current; document.getElementById('_w').innerHTML = json_obj.PowerW; document.getElementById('_va').innerHTML = json_obj.PowerVA; setTimeout(function(){ refresh() }, {mi}); } ";
 
 void webSwitchRelayOn() {
   if (WebServer.args() > 0) {
@@ -145,7 +147,7 @@ void defaultHtml() {
   page += FPSTR(HTTP_HEAD_END);
   page += F("<div class='fbg'>");
 
-  page += F("<form method='post' action='control'>");
+  //page += F("<form method='post' action='control'>");
   page += FPSTR(HTTP_TITLE_LABEL);
   page += FPSTR(HTTP_CURRENT_STATE_LABEL);
   page.replace("{v}", GlobalConfig.DeviceName);
@@ -172,22 +174,27 @@ void defaultHtml() {
   }
 
   page += FPSTR(HTTP_FW_LABEL);
-  page.replace("{fw}", FIRMWARE_VERSION);
 
-  if (newFirmwareAvailable) {
+//  if (newFirmwareAvailable) {
     page += FPSTR(HTTP_NEWFW_BUTTON);
     String fwurl = FPSTR(GITHUB_REPO_URL);
+    String fwjsurl = FPSTR(GITHUB_REPO_URL);
     fwurl.replace("api.", "");
     fwurl.replace("repos/", "");
     page.replace("{fwurl}", fwurl);
-  }
+//  }
 
-  page += F("</form></div>");
+  //page += F("</form></div><script>");
+  page += F("</div><script>");
+  page += FPSTR(HTTP_CUSTOMSCRIPT);
+  page += FPSTR(HTTP_CUSTOMUPDATESCRIPT);
+  page.replace("{fwjsurl}", fwjsurl);
+  page.replace("{fw}", FIRMWARE_VERSION);
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     page += FPSTR(HTTP_CUSTOMPOWSCRIPT);
     page.replace("{mi}", String(GlobalConfig.MeasureInterval * 1000));
   }
-  page += F("</div></body></html>");
+  page += F("</script></div></body></html>");
   WebServer.sendHeader("Content-Length", String(page.length()));
   WebServer.send(200, "text/html", page);
 }
@@ -296,49 +303,22 @@ void configHtml() {
 void sendDefaultWebCmdReply() {
   String reply = createReplyString();
   Serial.println("Sending Web-Reply: " + reply);
-  WebServer.send(200, "text/plain", reply);
+  WebServer.send(200, "application/json", reply);
 }
 
 String createReplyString() {
-  return "<state>" + String(digitalRead(RelayPin)) + "</state><timer>" + String(TimerSeconds) + "</timer><resttimer>" + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + "</resttimer>";
-}
-
-bool checkGithubForNewFWVersion() {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.setTimeout(HTTPTimeOut);
-
-    http.begin(FPSTR(GITHUB_REPO_URL), FPSTR(GITHUB_SSL_FINGERPRINT));
-    int httpCode = http.GET();
-    String payload = "";
-
-    if (httpCode != 200) {
-      Serial.println("HTTP failed with HTTP Error Code " + String(httpCode));
-      http.end();
-      return false;
-    } else {
-      payload = http.getString();
-      http.end();
-    }
-
-    Serial.println("Length = " + String(payload.length()));
-    payload = payload.substring(payload.indexOf("\"tag_name\":") + 12, payload.length());
-    payload = payload.substring(0, payload.indexOf("\""));
-    Serial.println("FW on Github: " + payload);
-    Serial.println("FW local    : " + FIRMWARE_VERSION);
-    return (payload != FIRMWARE_VERSION);
-  }
+  return "{\"state\": " + String(digitalRead(RelayPin)) + ", \"timer\": " + String(TimerSeconds) + ", \"resttimer\": " + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + "}";
 }
 
 void versionHtml() {
-  WebServer.send(200, "text/plain", "<fw>" + FIRMWARE_VERSION + "</fw><update_available>" + (newFirmwareAvailable ? "yes" : "no") + "</update_available>");
+  WebServer.send(200, "text/plain", "<fw>" + FIRMWARE_VERSION + "</fw>");
 }
 
 void replyPowerJSON() {
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    WebServer.send(200, "text/plain", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
   else
-    WebServer.send(200, "text/plain", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
 }
 
 void replyPower() {
