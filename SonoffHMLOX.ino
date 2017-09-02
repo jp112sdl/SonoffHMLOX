@@ -36,11 +36,10 @@
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
-#define PING_ENABLED        true
+#define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.4";
-const char GITHUB_SSL_FINGERPRINT[] PROGMEM = "35:85:74:EF:67:35:A7:CE:40:69:50:F3:C0:F6:80:CF:80:3B:2E:19";
+const String FIRMWARE_VERSION = "1.0.5";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
 enum BackendTypes_e {
@@ -70,7 +69,6 @@ struct globalconfig_t {
   bool lastRelayState = false;
   int  MeasureInterval  = 10;
   byte BackendType = BackendType_HomeMatic;
-  byte FirmwareCheckIntervalHours = 24;
   byte SonoffModel = SonoffModel_Switch;
   String Hostname = "Sonoff";
 } GlobalConfig;
@@ -102,8 +100,8 @@ byte On = 1;
 byte Off = 0;
 unsigned long LastMillisKeyPress = 0;
 unsigned long TimerStartMillis = 0;
-unsigned long LastFirmwareCheckMillis = 0;
-unsigned long LastHwlMillis = 0;
+unsigned long LastHlwMeasureMillis = 0;
+unsigned long LastHlwCollectMillis = 0;
 unsigned long LastPingMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
@@ -128,6 +126,17 @@ struct udp_t {
 #define defaultCurrentMultiplier        13670.9
 #define defaultVoltageMultiplier        441250.69
 #define defaultPowerMultiplier          12168954.98
+#define HLWMAXCOLLECTCOUNT              20 //Anzahl Werte für Mittelwertbildung
+#define HLWDISCARDNUM                   6  //Wieviele Werte sollen verworfen werden
+#define HLWCOLLECTINTERVAL              500 //ms
+
+struct hlwvalues_ {
+  float ActivePower[HLWMAXCOLLECTCOUNT];
+  float ApparentPower[HLWMAXCOLLECTCOUNT];
+  float Voltage[HLWMAXCOLLECTCOUNT];
+  float Current[HLWMAXCOLLECTCOUNT];
+  int HlwCollectCounter = 0;
+} hlwvalues;
 
 struct hlw8012value_t {
   float voltage = 0;
@@ -281,12 +290,12 @@ void loop() {
     LastMillisKeyPress = millis();
   if (TimerStartMillis > millis())
     TimerStartMillis = millis();
-  if (LastHwlMillis > millis())
-    LastHwlMillis = millis();
+  if (LastHlwMeasureMillis > millis())
+    LastHlwMeasureMillis = millis();
+  if (LastHlwCollectMillis > millis())
+    LastHlwCollectMillis = millis();
   if (LastPingMillis > millis())
     LastPingMillis = millis();
-  if (LastFirmwareCheckMillis > millis())
-    LastFirmwareCheckMillis = millis();
 
   //auf OTA Anforderung reagieren
   ArduinoOTA.handle();
@@ -336,10 +345,6 @@ void loop() {
     Serial.println(F("Timer abgelaufen. Schalte Relais aus."));
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
   }
-  if (LastFirmwareCheckMillis == 0 || millis() - LastFirmwareCheckMillis > GlobalConfig.FirmwareCheckIntervalHours * 1000 * 60 * 60) {
-    LastFirmwareCheckMillis = millis();
-    newFirmwareAvailable = checkGithubForNewFWVersion();
-  }
 
   if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
     LastPingMillis = millis();
@@ -377,6 +382,15 @@ void switchRelay(bool toState, bool transmitState) {
   if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
     digitalWrite(LEDPin, (RelayState ? On : Off));
   }
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+    LastHlwCollectMillis = millis();
+    LastHlwMeasureMillis = millis();
+  }
+}
+
+bool getRelayState() {
+  return (digitalRead(RelayPin) == RELAYSTATE_ON);
 }
 
 void toggleRelay(bool transmitState) {
@@ -388,12 +402,12 @@ void toggleRelay(bool transmitState) {
 }
 
 void blinkLED(int count) {
-  digitalWrite(LEDPin, Off);
+  byte oldState = digitalRead(LEDPin);
   delay(100);
   for (int i = 0; i < count; i++) {
-    digitalWrite(LEDPin, On);
+    digitalWrite(LEDPin, !oldState);
     delay(100);
-    digitalWrite(LEDPin, Off);
+    digitalWrite(LEDPin, oldState);
     delay(100);
   }
   delay(200);
