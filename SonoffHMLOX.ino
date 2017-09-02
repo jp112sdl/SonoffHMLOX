@@ -36,7 +36,7 @@
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
-#define PING_ENABLED        true
+#define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
 
 const String FIRMWARE_VERSION = "1.0.5";
