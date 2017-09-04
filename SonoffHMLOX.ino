@@ -39,7 +39,7 @@
 #define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.5";
+const String FIRMWARE_VERSION = "1.0.6";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
 enum BackendTypes_e {
@@ -71,6 +71,7 @@ struct globalconfig_t {
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   String Hostname = "Sonoff";
+  bool LEDDisabled = false;
 } GlobalConfig;
 
 struct hmconfig_t {
@@ -259,7 +260,7 @@ void setup() {
 
   GlobalConfig.lastRelayState = getLastState();
 
-  digitalWrite(LEDPin, (GlobalConfig.SonoffModel == SonoffModel_Pow));
+  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
 
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
@@ -379,9 +380,7 @@ void switchRelay(bool toState, bool transmitState) {
     if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + "=" + String(RelayState));
   }
 
-  if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
-    digitalWrite(LEDPin, (RelayState ? On : Off));
-  }
+  switchLED((RelayState ? On : Off));
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     LastHlwCollectMillis = millis();
@@ -401,13 +400,21 @@ void toggleRelay(bool transmitState) {
   }
 }
 
+void switchLED(bool State) {
+  if (GlobalConfig.SonoffModel == SonoffModel_Switch && GlobalConfig.LEDDisabled) {
+    digitalWrite(LEDPin, Off);
+  } else {
+    digitalWrite(LEDPin, State);
+  }
+}
+
 void blinkLED(int count) {
   byte oldState = digitalRead(LEDPin);
   delay(100);
   for (int i = 0; i < count; i++) {
-    digitalWrite(LEDPin, !oldState);
+    switchLED(!oldState);
     delay(100);
-    digitalWrite(LEDPin, oldState);
+    switchLED(oldState);
     delay(100);
   }
   delay(200);
