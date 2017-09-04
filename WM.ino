@@ -52,9 +52,9 @@ bool doWifiConnect() {
     if (GlobalConfig.restoreOldRelayState) chrRestoreOldState =  "1" ;
     WiFiManagerParameter custom_cbrestorestate("restorestate", "Schaltzustand wiederherstellen: ", chrRestoreOldState, 8, 1);
 
-    char*chrLEDEnabled = "0";
-    if (GlobalConfig.LEDEnabled) chrLEDEnabled =  "1" ;
-    WiFiManagerParameter custom_cbledenabled("ledenabled_switch", "LED aktiviert ", chrLEDEnabled, 8, 1);
+    char*chrLEDDisabled = "0";
+    if (GlobalConfig.LEDDisabled) chrLEDDisabled =  "1" ;
+    WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert ", chrLEDDisabled, 8, 1);
 
     WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
     String del = String(GlobalConfig.MeasureInterval);
@@ -103,7 +103,7 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_powervariablename);
     wifiManager.addParameter(&custom_powermeasureinterval);
     wifiManager.addParameter(&custom_cbrestorestate);
-    wifiManager.addParameter(&custom_cbledenabled);
+    wifiManager.addParameter(&custom_cbleddisabled);
     wifiManager.addParameter(&custom_backendtype);
     wifiManager.addParameter(&custom_text);
     wifiManager.addParameter(&custom_ip);
@@ -147,7 +147,7 @@ bool doWifiConnect() {
       }
 
       GlobalConfig.restoreOldRelayState = (atoi(custom_cbrestorestate.getValue()) == 1);
-      GlobalConfig.LEDEnabled = (atoi(custom_cbledenabled.getValue()) == 1);
+      GlobalConfig.LEDDisabled = (atoi(custom_cbleddisabled.getValue()) == 1);
       GlobalConfig.BackendType = (atoi(custom_backendtype.getValue()));
       GlobalConfig.SonoffModel = (atoi(custom_sonoffmodel.getValue()));
 

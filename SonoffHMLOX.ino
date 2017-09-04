@@ -71,7 +71,7 @@ struct globalconfig_t {
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   String Hostname = "Sonoff";
-  bool LEDEnabled;
+  bool LEDDisabled = false;
 } GlobalConfig;
 
 struct hmconfig_t {
@@ -401,7 +401,7 @@ void toggleRelay(bool transmitState) {
 }
 
 void switchLED(bool State) {
-  if (GlobalConfig.SonoffModel == SonoffModel_Switch && !GlobalConfig.LEDEnabled) {
+  if (GlobalConfig.SonoffModel == SonoffModel_Switch && GlobalConfig.LEDDisabled) {
     digitalWrite(LEDPin, Off);
   } else {
     digitalWrite(LEDPin, State);
