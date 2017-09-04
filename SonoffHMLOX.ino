@@ -39,7 +39,7 @@
 #define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.5";
+const String FIRMWARE_VERSION = "1.0.6";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
 enum BackendTypes_e {

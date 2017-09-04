@@ -54,7 +54,7 @@ bool doWifiConnect() {
 
     char*chrLEDDisabled = "0";
     if (GlobalConfig.LEDDisabled) chrLEDDisabled =  "1" ;
-    WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert ", chrLEDDisabled, 8, 1);
+    WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert: ", chrLEDDisabled, 8, 1);
 
     WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
     String del = String(GlobalConfig.MeasureInterval);
