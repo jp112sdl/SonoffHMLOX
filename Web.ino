@@ -14,6 +14,7 @@ const char HTTP_CALIB_INPUT[] PROGMEM = "<div><table><tr><td>Last (W):</td><td a
 const char HTTP_DOCALIB_BUTTON[] PROGMEM = "<div><button name='doCalibrate' value='1' type='submit'>Kalibrieren</button></div>";
 const char HTTP_UNDOCALIB_BUTTON[] PROGMEM = "<div><button name='undoCalibrate' value='1' type='submit'>Kalib. Reset</button></div>";
 const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input type='text' id='ccuip' name='ccuip' pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$' maxlength=16 placeholder='{st}' value='{ccuip}'></div><div><label>Ger&auml;tename:</label></div><div><input type='text' id='devicename' name='devicename' pattern='[A-Za-z0-9]+' placeholder='Ger&auml;tename' value='{dn}'></div><div><label>Schaltzustand wiederherstellen:</label></div><div><input id='rstate' type='checkbox' name='rstate' {rs} value=1></div>";
+const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<div><label>LED aktiviert:</label></div><div><input id='ledenabled' type='checkbox' name='ledenabled' {le} value=1></div>";
 const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
 const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><input type='text' id='lox_udpport' pattern='[0-9]{1,5}' name='lox_udpport' placeholder='UDP Port' value='{udp}'></div>";
 const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}'></div>";
@@ -175,14 +176,14 @@ void defaultHtml() {
 
   page += FPSTR(HTTP_FW_LABEL);
 
-//  if (newFirmwareAvailable) {
-    page += FPSTR(HTTP_NEWFW_BUTTON);
-    String fwurl = FPSTR(GITHUB_REPO_URL);
-    String fwjsurl = FPSTR(GITHUB_REPO_URL);
-    fwurl.replace("api.", "");
-    fwurl.replace("repos/", "");
-    page.replace("{fwurl}", fwurl);
-//  }
+  //  if (newFirmwareAvailable) {
+  page += FPSTR(HTTP_NEWFW_BUTTON);
+  String fwurl = FPSTR(GITHUB_REPO_URL);
+  String fwjsurl = FPSTR(GITHUB_REPO_URL);
+  fwurl.replace("api.", "");
+  fwurl.replace("repos/", "");
+  page.replace("{fwurl}", fwurl);
+  //  }
 
   //page += F("</form></div><script>");
   page += F("</div><script>");
@@ -205,6 +206,7 @@ void configHtml() {
   bool showHMDevError = false;
   if (WebServer.args() > 0) {
     GlobalConfig.restoreOldRelayState = false;
+    GlobalConfig.LEDEnabled = false;
     for (int i = 0; i < WebServer.args(); i++) {
       if (WebServer.argName(i) == "btnSave")
         sc = (WebServer.arg(i).toInt() == 1);
@@ -218,9 +220,11 @@ void configHtml() {
         strcpy(GlobalConfig.DeviceName, WebServer.arg(i).c_str());
       if (WebServer.argName(i) == "lox_udpport")
         strcpy(LoxoneConfig.UDPPort, WebServer.arg(i).c_str());
-      if (WebServer.argName(i) == "rstate") {
+      if (WebServer.argName(i) == "rstate")
         GlobalConfig.restoreOldRelayState = (String(WebServer.arg(i)).toInt() == 1);
-      }
+      if (WebServer.argName(i) == "ledenabled")
+        GlobalConfig.LEDEnabled = (String(WebServer.arg(i)).toInt() == 1);
+
 
     }
     if (sc) {
@@ -234,7 +238,7 @@ void configHtml() {
         } else {
           showHMDevError = true;
         }
-
+        switchLED((RelayState ? On : Off));
       }
     }
   }
@@ -251,6 +255,11 @@ void configHtml() {
   page += F("<form method='post' action='config'>");
   page += FPSTR(HTTP_TITLE_LABEL);
   page += FPSTR(HTTP_CONF);
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
+    page += FPSTR(HTTP_CONF_ADD_SWITCH);
+  }
+
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     page += FPSTR(HTTP_CONF_POW_MEASURE_INTERVAL);
   }
@@ -268,6 +277,7 @@ void configHtml() {
   }
 
   page.replace("{rs}", ((GlobalConfig.restoreOldRelayState) ? "checked" : ""));
+  page.replace("{le}", ((GlobalConfig.LEDEnabled) ? "checked" : ""));
   page.replace("{dn}", GlobalConfig.DeviceName);
   page.replace("{ccuip}", GlobalConfig.ccuIP);
   page.replace("{mi}", String(GlobalConfig.MeasureInterval));

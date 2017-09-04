@@ -10,6 +10,7 @@
 #define JSONCONFIG_MEASUREINTERVAL        "measureinterval"
 #define JSONCONFIG_BACKENDTYPE            "backendtype"
 #define JSONCONFIG_RESTOREOLDSTATE        "restoreOldState"
+#define JSONCONFIG_LEDENABLED             "ledEnabled"
 #define JSONCONFIG_SONOFFMODEL            "sonoffmodel"
 #define JSONCONFIG_HLW_CURRENTMULTIPLIER  "hlw_currentmultiplier"
 #define JSONCONFIG_HLW_VOLTAGEMULTIPLIER  "hlw_voltagemultiplier"
@@ -50,6 +51,7 @@ bool loadSystemConfig() {
 
           GlobalConfig.BackendType = json[JSONCONFIG_BACKENDTYPE];
           GlobalConfig.restoreOldRelayState = json[JSONCONFIG_RESTOREOLDSTATE];
+          GlobalConfig.LEDEnabled = json[JSONCONFIG_LEDENABLED];
           GlobalConfig.SonoffModel = json[JSONCONFIG_SONOFFMODEL];
           GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
 
@@ -101,6 +103,7 @@ bool saveSystemConfig() {
   json[JSONCONFIG_CCUIP] = GlobalConfig.ccuIP;
   json[JSONCONFIG_SONOFF] = GlobalConfig.DeviceName;
   json[JSONCONFIG_RESTOREOLDSTATE] = GlobalConfig.restoreOldRelayState;
+  json[JSONCONFIG_LEDENABLED] = GlobalConfig.LEDEnabled;
   json[JSONCONFIG_BACKENDTYPE] = GlobalConfig.BackendType;
   //json[JSONCONFIG_LOXUSERNAME] = LoxoneConfig.Username;
   //json[JSONCONFIG_LOXPASSWORD] = LoxoneConfig.Password;
