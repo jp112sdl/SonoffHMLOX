@@ -204,6 +204,7 @@ void setup() {
   }
 
   if (!loadSystemConfig()) startWifiManager = true;
+  //Ab hier ist die Config geladen und alle Variablen sind mit deren Werten belegt!
 
   if (doWifiConnect()) {
     Serial.println(F("WLAN erfolgreich verbunden!"));
