@@ -39,7 +39,7 @@
 #define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
 
-const String FIRMWARE_VERSION = "1.0.6";
+const String FIRMWARE_VERSION = "1.0.7";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
 enum BackendTypes_e {
@@ -204,6 +204,7 @@ void setup() {
   }
 
   if (!loadSystemConfig()) startWifiManager = true;
+  //Ab hier ist die Config geladen und alle Variablen sind mit deren Werten belegt!
 
   if (doWifiConnect()) {
     Serial.println(F("WLAN erfolgreich verbunden!"));

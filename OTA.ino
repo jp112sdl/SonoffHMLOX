@@ -21,8 +21,7 @@ void startOTAhandling() {
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
 
-  String Hostname = "Sonoff-OTA-" + WiFi.macAddress();
-  ArduinoOTA.setHostname(Hostname.c_str());
+  ArduinoOTA.setHostname(GlobalConfig.Hostname.c_str());
   //ArduinoOTA.setPassword((const char *)"sonoffota");
   ArduinoOTA.begin();
 }

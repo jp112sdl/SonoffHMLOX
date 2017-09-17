@@ -46,7 +46,7 @@ bool doWifiConnect() {
     //WiFiManagerParameter custom_loxusername("loxusername", "Loxone Username", "", VARIABLESIZE);
     //WiFiManagerParameter custom_loxpassword("loxpassword", "Loxone Password", "", VARIABLESIZE,4);
     WiFiManagerParameter custom_loxudpport("loxudpport", "Loxone UDP Port", LoxoneConfig.UDPPort, 10, 0, "pattern='[0-9]{1,5}'");
-    WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
+    WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
 
     char*chrRestoreOldState = "0";
     if (GlobalConfig.restoreOldRelayState) chrRestoreOldState =  "1" ;
@@ -56,7 +56,7 @@ bool doWifiConnect() {
     if (GlobalConfig.LEDDisabled) chrLEDDisabled =  "1" ;
     WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert: ", chrLEDDisabled, 8, 1);
 
-    WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9]+'");
+    WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
     String del = String(GlobalConfig.MeasureInterval);
     char delBuf[8];
     del.toCharArray(delBuf, 8);
