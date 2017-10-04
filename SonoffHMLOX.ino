@@ -23,6 +23,9 @@
 #include <ESP8266Ping.h>
 #include <ESP8266mDNS.h>
 
+#define                       UDPDEBUG
+#define                       SERIALDEBUG
+
 #define LEDPinSwitch          13
 #define LEDPinPow             15
 #define SEL_PIN                5
@@ -41,6 +44,11 @@
 
 const String FIRMWARE_VERSION = "1.0.8";
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
+
+#ifdef UDPDEBUG
+#define SYSLOGIP            "192.168.1.251"
+#define SYSLOGPORT          514
+#endif
 
 enum BackendTypes_e {
   BackendType_HomeMatic,
@@ -90,6 +98,17 @@ struct sonoffnetconfig_t {
   char netmask[IPSIZE] = "0.0.0.0";
   char gw[IPSIZE]      = "0.0.0.0";
 } SonoffNetConfig;
+
+enum _SyslogSeverity {
+  _slEmergency,
+  _slAlert,
+  _slCritical,
+  _slError,
+  _slWarning,
+  _slNotice,
+  _slInformational,
+  _slDebug
+};
 
 const String bootConfigModeFilename = "bootcfg.mod";
 const String lastRelayStateFilename = "laststat.txt";
@@ -184,7 +203,6 @@ void setup() {
   } else {
     Serial.println(F("-> Nein, SPIFFS mount fail!"));
   }
-
 
   if (!startWifiManager) {
     Serial.println(F("Config-Modus mit Taster aktivieren?"));
@@ -284,6 +302,7 @@ void setup() {
 
   Serial.println("Starte UDP-Handler an Port " + String(UDPPORT) + "...");
   UDPClient.UDP.begin(UDPPORT);
+  DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(WiFi.localIP()) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "setup", _slInformational);
 }
 
 void loop() {
@@ -318,9 +337,9 @@ void loop() {
     TimerSeconds = (udpMessage.substring(4, udpMessage.length())).toInt();
     if (TimerSeconds > 0) {
       TimerStartMillis = millis();
-      Serial.println("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds));
+      DEBUG("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds), "loop()", _slInformational);
     } else {
-      Serial.println(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"));
+      DEBUG(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"), "loop()", _slInformational);
     }
     switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   }
@@ -344,17 +363,17 @@ void loop() {
 
   //Timer
   if (TimerSeconds > 0 && millis() - TimerStartMillis > TimerSeconds * 1000) {
-    Serial.println(F("Timer abgelaufen. Schalte Relais aus."));
+    DEBUG(F("Timer abgelaufen. Schalte Relais aus."), "loop()", _slInformational);
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
   }
 
   if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
     LastPingMillis = millis();
-    Serial.print("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ");
+    DEBUG("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ", "loop()",_slInformational);
     const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
     IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
     bool ret = Ping.ping(pingHost);
-    Serial.println((ret) ? "success" : "fail");
+    DEBUG((ret) ? "success" : "fail", "loop()",_slInformational);
   }
 
   //POW Handling
@@ -367,7 +386,7 @@ void loop() {
 
 void switchRelay(bool toState, bool transmitState) {
   RelayState = toState;
-  Serial.println("Switch Relay to " + String(toState) + " with transmitState = " + String(transmitState));
+  DEBUG("Switch Relay to " + String(toState) + " with transmitState = " + String(transmitState), "switchRelay()",_slInformational);
 
   if (toState == RELAYSTATE_OFF) {
     TimerSeconds = 0;
