@@ -588,6 +588,7 @@ void WiFiManager::handleWifiSave() {
     }
     //read parameter
     String value = server->arg(_params[i]->getID()).c_str();
+    value.trim();
       
     //store it in array
     value.toCharArray(_params[i]->_value, _params[i]->_length);
