@@ -4,8 +4,6 @@
   Flash Frequency: 40 MHz
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
-  Debug Port: disabled
-  Debug Level: none
   Reset Mode: ck
   Upload Speed: 115200
 */
@@ -23,7 +21,7 @@
 #include <ESP8266Ping.h>
 #include <ESP8266mDNS.h>
 
-const String FIRMWARE_VERSION = "1.0.9";
+const String FIRMWARE_VERSION = "1.0.10";
 //#define                       UDPDEBUG
 //#define                       SERIALDEBUG
 
