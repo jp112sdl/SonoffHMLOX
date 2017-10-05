@@ -31,15 +31,15 @@ void webSwitchRelayOn() {
         TimerSeconds = WebServer.arg(i).toInt();
         if (TimerSeconds > 0) {
           TimerStartMillis = millis();
-          Serial.println("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds));
+          DEBUG("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds));
         } else {
-          Serial.println(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"));
+          DEBUG(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"));
         }
       }
     }
   } else {
     TimerSeconds = 0;
-    Serial.println(F("webSwitchRelayOn(), keine Parameter, TimerSeconds = 0"));
+    DEBUG(F("webSwitchRelayOn(), keine Parameter, TimerSeconds = 0"));
   }
   switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
   sendDefaultWebCmdReply();
@@ -118,7 +118,7 @@ void calibrateHtml() {
     WebServer.send(200, "text/html", page);
 
     if (doCalibrate && cvolt > 0 && cwatt > 0 && hlw8012value.voltage > 0) {
-      Serial.println("Starte Kalibrierung");
+      DEBUG("Starte Kalibrierung");
       hlwcalibrate(cvolt, cwatt);
     }
   }
@@ -315,7 +315,7 @@ void configHtml() {
 
 void sendDefaultWebCmdReply() {
   String reply = createReplyString();
-  Serial.println("Sending Web-Reply: " + reply);
+  DEBUG("Sending Web-Reply: " + reply);
   WebServer.send(200, "application/json", reply);
 }
 

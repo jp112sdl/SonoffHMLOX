@@ -34,10 +34,7 @@ void hlwcalibrate(byte exp_voltage, byte exp_power ) {
   float newVoltageMultiplier = hlw8012.getVoltageMultiplier();
   float newPowerMultiplier = hlw8012.getPowerMultiplier();
 
-  Serial.print(F("[HLW] New  multipliers : current = ")); Serial.print(String(newCurrentMultiplier));
-  Serial.print(F(" / voltage = ")); Serial.print(String(newVoltageMultiplier));
-  Serial.print(F(" / power = ")); Serial.print(String(newPowerMultiplier));
-  Serial.println();
+  DEBUG("[HLW] New  multipliers : current = " + String(newCurrentMultiplier) +  " / voltage = " + String(newVoltageMultiplier) + " / power = " + String(newPowerMultiplier));
 
   HLW8012Calibration.CurrentMultiplier = newCurrentMultiplier;
   HLW8012Calibration.VoltageMultiplier = newVoltageMultiplier;
@@ -61,10 +58,7 @@ void hlw_init() {
   hlw8012.setVoltageMultiplier(HLW8012Calibration.VoltageMultiplier);
   hlw8012.setPowerMultiplier(HLW8012Calibration.PowerMultiplier);
 
-  Serial.print(F("[HLW] multipliers : current = ")); Serial.print(hlw8012.getCurrentMultiplier());
-  Serial.print(F(" / voltage = ")); Serial.print(hlw8012.getVoltageMultiplier());
-  Serial.print(F(" / power = ")); Serial.print(hlw8012.getPowerMultiplier());
-  Serial.println();
+  DEBUG("[HLW] multipliers : current = " + String(hlw8012.getCurrentMultiplier()) + " / voltage = " + String(hlw8012.getVoltageMultiplier()) + " / power = " +  String(hlw8012.getPowerMultiplier()));
   sethlwInterrupts();
 }
 
@@ -115,12 +109,8 @@ void handleHLW8012() {
 
   if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHlwMeasureMillis) > (GlobalConfig.MeasureInterval * 1000)) {
     LastHlwMeasureMillis = millis();
-    Serial.print(F("[HLW]: ")); Serial.print(hlw8012value.powerw);
-    Serial.print(F("W, ")); Serial.print(hlw8012value.voltage);
-    Serial.print(F("V, ")); Serial.print(hlw8012value.current);
-    Serial.print(F("A, ")); Serial.print(hlw8012value.powerva);
-    Serial.print(F("VA, Power Factor (%) : ")); Serial.print((int) (100 * hlw8012.getPowerFactor()));
-    Serial.println();
+    DEBUG("[HLW]: "+String(hlw8012value.powerw)+"W, "+String(hlw8012value.voltage)+"V, "+String(hlw8012value.current)+"A, "+String(hlw8012value.powerva)+"VA, Power Factor (%): "+String((int) (100 * hlw8012.getPowerFactor())));
+    
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
       if (String(HomeMaticConfig.PowerVariableName) != "") {
         setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));

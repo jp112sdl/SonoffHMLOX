@@ -22,7 +22,9 @@ bool setStateCUxD(String id, String value) {
 
       payload = payload.substring(payload.indexOf("<ret>"));
       payload = payload.substring(5, payload.indexOf("</ret>"));
-      DEBUG("result: " + payload, "setStateCUxD()", _slInformational);
+
+
+      DEBUG("result: " + payload, "setStateCUxD()", (payload != "null") ? _slInformational : _slError);
 
       return (payload != "null");
 

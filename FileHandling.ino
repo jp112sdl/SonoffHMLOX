@@ -17,25 +17,24 @@
 #define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
 
 bool loadSystemConfig() {
-  Serial.println(F("loadSystemConfig mounting FS..."));
+  DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()",_slInformational);
   if (SPIFFS.begin()) {
-    Serial.println(F("loadSystemConfig mounted file system"));
+    DEBUG(F("loadSystemConfig mounted file system"), "loadSystemConfig()",_slInformational);
     if (SPIFFS.exists("/" + configJsonFile)) {
-      Serial.println(F("loadSystemConfig reading config file"));
+      DEBUG(F("loadSystemConfig reading config file"), "loadSystemConfig()",_slInformational);
       File configFile = SPIFFS.open("/" + configJsonFile, "r");
       if (configFile) {
-        Serial.println(F("loadSystemConfig opened config file"));
+        DEBUG(F("loadSystemConfig opened config file"), "loadSystemConfig()",_slInformational);
         size_t size = configFile.size();
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
         DynamicJsonBuffer jsonBuffer;
         JsonObject& json = jsonBuffer.parseObject(buf.get());
-        Serial.println("Content of JSON Config-File: /" + configJsonFile);
+        DEBUG("Content of JSON Config-File: /" + configJsonFile, "loadSystemConfig()",_slInformational);
         json.printTo(Serial);
-        Serial.println();
         if (json.success()) {
-          Serial.println("\nJSON OK");
+          DEBUG("\nJSON OK", "loadSystemConfig()",_slInformational);
           ((json[JSONCONFIG_IP]).as<String>()).toCharArray(SonoffNetConfig.ip, IPSIZE);
           ((json[JSONCONFIG_NETMASK]).as<String>()).toCharArray(SonoffNetConfig.netmask, IPSIZE);
           ((json[JSONCONFIG_GW]).as<String>()).toCharArray(SonoffNetConfig.gw, IPSIZE);
@@ -77,24 +76,24 @@ bool loadSystemConfig() {
           }
 
         } else {
-          Serial.println(F("\nloadSystemConfig ERROR loading config"));
+          DEBUG(F("\nloadSystemConfig ERROR loading config"), "loadSystemConfig()",_slInformational);
         }
       }
       return true;
     } else {
-      Serial.println("/" + configJsonFile + " not found.");
+      DEBUG("/" + configJsonFile + " not found.", "loadSystemConfig()",_slInformational);
       return false;
     }
     SPIFFS.end();
   } else {
-    Serial.println(F("loadSystemConfig failed to mount FS"));
+    DEBUG(F("loadSystemConfig failed to mount FS"), "loadSystemConfig()",_slCritical);
     return false;
   }
 }
 
 bool saveSystemConfig() {
   SPIFFS.begin();
-  Serial.println(F("saving config"));
+  DEBUG(F("saving config"), "saveSystemConfig()",_slInformational);
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json[JSONCONFIG_IP] = SonoffNetConfig.ip;
@@ -122,12 +121,11 @@ bool saveSystemConfig() {
   SPIFFS.remove("/" + configJsonFile);
   File configFile = SPIFFS.open("/" + configJsonFile, "w");
   if (!configFile) {
-    Serial.println(F("failed to open config file for writing"));
+    DEBUG(F("failed to open config file for writing"), "saveSystemConfig()",_slCritical);
     return false;
   }
 
   json.printTo(Serial);
-  Serial.println();
   json.printTo(configFile);
   configFile.close();
   SPIFFS.end();
@@ -138,15 +136,15 @@ void setLastState(bool state) {
   GlobalConfig.lastRelayState = state;
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
-      Serial.println(F("setLastState mounted file system"));
+      DEBUG(F("setLastState mounted file system"), "setLastState()",_slInformational);
       //SPIFFS.remove("/" + lastStateFilename);
       File setLastStateFile = SPIFFS.open("/" + lastRelayStateFilename, "w");
       setLastStateFile.print(state);
       setLastStateFile.close();
       SPIFFS.end();
-      Serial.println("setLastState (" + String(state) + ") saved.");
+      DEBUG("setLastState (" + String(state) + ") saved.", "setLastState()",_slInformational);
     } else {
-      Serial.println(F("setLastState SPIFFS mount fail!"));
+      DEBUG(F("setLastState SPIFFS mount fail!"), "setLastState()",_slCritical);
     }
   }
 }
@@ -154,23 +152,23 @@ void setLastState(bool state) {
 bool getLastState() {
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
-      Serial.println(F("getLastState mounted file system"));
+      DEBUG(F("getLastState mounted file system"), "getLastState()",_slInformational);
       if (SPIFFS.exists("/" + lastRelayStateFilename)) {
-        Serial.println(lastRelayStateFilename + " existiert");
+        DEBUG(lastRelayStateFilename + " existiert", "getLastState()",_slInformational);
         File lastStateFile = SPIFFS.open("/" + lastRelayStateFilename, "r");
         bool bLastState = false;
         if (lastStateFile && lastStateFile.size()) {
           String content = String(char(lastStateFile.read()));
-          Serial.println("getLastState FileContent = " + content);
+          DEBUG("getLastState FileContent = " + content, "getLastState()",_slInformational);
           bLastState = (content == "1");
         }
         SPIFFS.end();
         return bLastState;
       } else {
-        Serial.println(lastRelayStateFilename + " existiert nicht");
+        DEBUG(lastRelayStateFilename + " existiert nicht", "getLastState()",_slInformational);
       }
     } else {
-      Serial.println(F("getLastState SPIFFS mount fail!"));
+      DEBUG(F("getLastState SPIFFS mount fail!"), "getLastState()",_slCritical);
       false;
     }
   } else {
@@ -180,13 +178,13 @@ bool getLastState() {
 
 void setBootConfigMode() {
   if (SPIFFS.begin()) {
-    Serial.println(F("setBootConfigMode mounted file system"));
+    DEBUG(F("setBootConfigMode mounted file system"), "setBootConfigMode()",_slInformational);
     if (!SPIFFS.exists("/" + bootConfigModeFilename)) {
       File bootConfigModeFile = SPIFFS.open("/" + bootConfigModeFilename, "w");
       bootConfigModeFile.print("0");
       bootConfigModeFile.close();
       SPIFFS.end();
-      Serial.println(F("Boot to ConfigMode requested. Restarting..."));
+      DEBUG(F("Boot to ConfigMode requested. Restarting..."), "setBootConfigMode()",_slInformational);
       WebServer.send(200, "text/plain", F("<state>enableBootConfigMode - Rebooting</state>"));
       delay(500);
       ESP.restart();

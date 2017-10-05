@@ -1,10 +1,10 @@
 bool sendLoxoneUDP(String msg) {
   if (atoi(LoxoneConfig.UDPPort) > 0 && String(GlobalConfig.ccuIP).length() > 6) {
-    Serial.println("Sending UDP Message = \"" + String(msg) + "\" to " + String(GlobalConfig.ccuIP) + ":" + String(LoxoneConfig.UDPPort));
+    DEBUG("Sending UDP Message = \"" + String(msg) + "\" to " + String(GlobalConfig.ccuIP) + ":" + String(LoxoneConfig.UDPPort));
     UDPClient.UDP.beginPacket(GlobalConfig.ccuIP, atoi(LoxoneConfig.UDPPort));
     UDPClient.UDP.write(msg.c_str());
     UDPClient.UDP.endPacket();
   } else {
-    Serial.println("sendLoxoneUDP: not sending, please check MiniServer IP and UDP Port in configuration");
+    DEBUG("sendLoxoneUDP: not sending, please check MiniServer IP and UDP Port in configuration");
   }
 }

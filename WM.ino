@@ -6,7 +6,7 @@ bool doWifiConnect() {
   for (int i = 0; i < _psk.length(); i++) {
     _pskMask += "*";
   }
-  Serial.println("ssid = " + _ssid + ", psk = " + _pskMask);
+  DEBUG("ssid = " + _ssid + ", psk = " + _pskMask);
 
 
   const char* ipStr = SonoffNetConfig.ip; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
@@ -14,7 +14,7 @@ bool doWifiConnect() {
   const char* gwStr = SonoffNetConfig.gw; byte gwBytes[4]; parseBytes(gwStr, '.', gwBytes, 4, 10);
 
   if (!startWifiManager && _ssid != "" && _psk != "" ) {
-    Serial.println(F("Connecting WLAN the classic way..."));
+    DEBUG(F("Connecting WLAN the classic way..."));
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
     WiFi.hostname(GlobalConfig.Hostname);
@@ -25,7 +25,7 @@ bool doWifiConnect() {
 
     while (WiFi.status() != WL_CONNECTED) {
       waitCounter++;
-      Serial.print(".");
+      DEBUG(".");
       digitalWrite(LEDPinSwitch, (!(digitalRead(LEDPinSwitch))));
       digitalWrite(LEDPinPow, (!(digitalRead(LEDPinPow))));
       if (waitCounter == 20) {
@@ -33,13 +33,13 @@ bool doWifiConnect() {
       }
       delay(500);
     }
-    Serial.println("Wifi Connected");
+    DEBUG("Wifi Connected");
     return true;
   } else {
     WiFiManager wifiManager;
+    wifiManager.setDebugOutput(wifiManagerDebugOutput);
     digitalWrite(LEDPinSwitch, LOW);
     digitalWrite(LEDPinPow, HIGH);
-    wifiManager.setDebugOutput(wifiManagerDebugOutput);
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
     WiFiManagerParameter custom_ccuip("ccu", "IP der CCU2", GlobalConfig.ccuIP, IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
@@ -82,10 +82,10 @@ bool doWifiConnect() {
         model = F("<option selected value='0'>Switch/S20</option><option value='1'>POW</option>");
         break;
       case SonoffModel_Pow:
-        model = F("<option value='0'>Switch/S20</option><option selected value='1'>POW</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option>");
         break;
       default:
-        model = F("<option value='0'>Switch/S20</option><option value='1'>POW</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option>");
         break;
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
@@ -120,7 +120,7 @@ bool doWifiConnect() {
       }
       else {
         if (!wifiManager.startConfigPortal(Hostname.c_str())) {
-          Serial.println(F("WM: failed to connect and hit timeout"));
+          DEBUG(F("WM: failed to connect and hit timeout"));
           delay(500);
           ESP.restart();
         }
@@ -131,11 +131,11 @@ bool doWifiConnect() {
 
     wifiManager.autoConnect(Hostname.c_str());
 
-    Serial.println(F("Wifi Connected"));
-    Serial.println("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
+    DEBUG(F("Wifi Connected"));
+    DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
     if (wm_shouldSaveConfig) {
       if (String(custom_ip.getValue()).length() > 5) {
-        Serial.println("Custom IP Address is set!");
+        DEBUG("Custom IP Address is set!");
         strcpy(SonoffNetConfig.ip, custom_ip.getValue());
         strcpy(SonoffNetConfig.netmask, custom_netmask.getValue());
         strcpy(SonoffNetConfig.gw, custom_gw.getValue());
@@ -170,11 +170,11 @@ bool doWifiConnect() {
 }
 
 void configModeCallback (WiFiManager *myWiFiManager) {
-  Serial.println("AP-Modus ist aktiv!");
+  DEBUG("AP-Modus ist aktiv!");
 }
 
 void saveConfigCallback () {
-  Serial.println("Should save config");
+  DEBUG("Should save config");
   wm_shouldSaveConfig = true;
 }
 
@@ -190,20 +190,9 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
 }
 
 void printWifiStatus() {
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  IPAddress gw = WiFi.gatewayIP();
-  Serial.print("Gateway Address: ");
-  Serial.println(gw);
-
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
+  DEBUG("SSID: " + WiFi.SSID());
+  DEBUG("IP Address: " + String(WiFi.localIP()));
+  DEBUG("Gateway Address: " + String(WiFi.gatewayIP()));
+  DEBUG("signal strength (RSSI):" + String(WiFi.RSSI()) + " dBm");
 }
 
