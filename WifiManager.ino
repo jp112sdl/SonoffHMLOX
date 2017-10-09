@@ -62,30 +62,33 @@ bool doWifiConnect() {
     del.toCharArray(delBuf, 8);
     WiFiManagerParameter custom_powermeasureinterval("custom_powermeasureinterval_pow", "Messintervall", delBuf, 8, 0, "pattern='[0-9]{1,4}'");
 
-    String options = "";
+    String backend = "";
     switch (GlobalConfig.BackendType) {
       case BackendType_HomeMatic:
-        options = F("<option selected value='0'>HomeMatic</option><option value='1'>Loxone</option>");
+        backend = F("<option selected value='0'>HomeMatic</option><option value='1'>Loxone</option>");
         break;
       case BackendType_Loxone:
-        options = F("<option value='0'>HomeMatic</option><option selected value='1'>Loxone</option>");
+        backend = F("<option value='0'>HomeMatic</option><option selected value='1'>Loxone</option>");
         break;
       default:
-        options = F("<option value='0'>HomeMatic</option><option value='1'>Loxone</option>");
+        backend = F("<option value='0'>HomeMatic</option><option value='1'>Loxone</option>");
         break;
     }
-    WiFiManagerParameter custom_backendtype("backendtype", "Backend", "", 8, 2, options.c_str());
+    WiFiManagerParameter custom_backendtype("backendtype", "Backend", "", 8, 2, backend.c_str());
 
     String model = "";
     switch (GlobalConfig.SonoffModel) {
       case SonoffModel_Switch:
-        model = F("<option selected value='0'>Switch/S20</option><option value='1'>POW</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
         break;
       case SonoffModel_Pow:
-        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option><option value='2'>Touch als Sender</option>");
+        break;
+      case SonoffModel_TouchAsSender:
+        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option selected value='2'>Touch als Sender</option>");
         break;
       default:
-        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
         break;
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
@@ -158,6 +161,7 @@ bool doWifiConnect() {
       strcpy(LoxoneConfig.UDPPort, custom_loxudpport.getValue());
 
       strcpy(HomeMaticConfig.PowerVariableName, custom_powervariablename.getValue());
+
       GlobalConfig.MeasureInterval = atoi(custom_powermeasureinterval.getValue());
 
       saveSystemConfig();
@@ -191,8 +195,8 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
 
 void printWifiStatus() {
   DEBUG("SSID: " + WiFi.SSID());
-  DEBUG("IP Address: " + String(WiFi.localIP()));
-  DEBUG("Gateway Address: " + String(WiFi.gatewayIP()));
+  DEBUG("IP Address: " + IpAddress2String(WiFi.localIP()));
+  DEBUG("Gateway Address: " + IpAddress2String(WiFi.gatewayIP()));
   DEBUG("signal strength (RSSI):" + String(WiFi.RSSI()) + " dBm");
 }
 

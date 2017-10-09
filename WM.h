@@ -16,6 +16,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
+#include "js_wm.h"
+#include "css_wm.h"
 #include <memory>
 
 extern "C" {
@@ -23,8 +25,6 @@ extern "C" {
 }
 
 const char HTTP_HEAD[] PROGMEM            = "<!DOCTYPE html><html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/><title>{v}</title>";
-const char HTTP_STYLE[] PROGMEM           = "<style>.c{text-align: center;} div,input{padding:5px;font-size:1em;} input[type=text],input[type=password]{width:95%;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#1fa3ec;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} .ckb{float: right;width: 18px;text-align: right;} .cob { border: 1px solid #ccc; width: 180px; border-radius: 3px; overflow: hidden; background: #fafafa no-repeat 90% 50%;} .cob select { padding: 5px 8px; border: none; box-shadow: none; background: transparent; background-image: none; webkit-appearance: none; font-size: 1em;}.cob select:focus { outline: none;} .q{float: right;width: 64px;text-align: right;} .l{background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==\") no-repeat left center;background-size: 1em;}</style>";
-const char HTTP_SCRIPT[] PROGMEM          = "<script>function c(l) { document.getElementById('s').value = l.innerText || l.textContent; document.getElementById('p').focus();}function setBackendType() { var backendtype = document.getElementById('backendtype'); var ccu = document.getElementById('ccu'); var qsa = document.querySelectorAll('[id^=div_]'); qsa.forEach(function(e) { e.style.display = 'block'; }); qsa = document.querySelectorAll('[id$=_pow]'); qsa.forEach(function(e) { e.style.display = 'block'; }); qsa = document.querySelectorAll('[id$=_switch]'); qsa.forEach(function(e) { e.style.display = 'block'; }); if (backendtype) { var flt; switch (parseInt(backendtype.value)) { case 0: flt = 'lox'; if (ccu) ccu.placeholder = 'IP der CCU2'; break; case 1: flt = 'hm'; if (ccu) ccu.placeholder = 'IP:Port des LOXONE Miniservers'; break; } qsa = document.querySelectorAll('[id^=div_' + flt + ']'); qsa.forEach(function(e) { e.style.display = 'none'; }); } if (sonoffmodel) { switch (parseInt(sonoffmodel.value)) { case 0: qsa = document.querySelectorAll('[id$=_pow]'); qsa.forEach(function(e) { e.style.display = 'none'; }); break; case 1: qsa = document.querySelectorAll('[id$=_switch]'); qsa.forEach(function(e) { e.style.display = 'none'; }); break; } }}</script>";
 const char HTTP_HEAD_END[] PROGMEM        = "</head><body><div style='text-align:left;display:inline-block;min-width:260px;'>";
 const char HTTP_PORTAL_OPTIONS[] PROGMEM  = "<form action=\"/wifi\" method=\"get\"><button>Sonoff konfigurieren</button></form><br/><br/><form action=\"/i\" method=\"get\"><button>Chip-Info</button></form><br/><form action=\"/r\" method=\"post\"><button>Reset</button></form>";
 const char HTTP_ITEM[] PROGMEM            = "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q {i}'>{r}%</span></div>";

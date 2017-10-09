@@ -1,3 +1,5 @@
+//CUxD.CUX2801001:10.PRESS_SHORT
+//CUxD.CUX2801001:10.PRESS_LONG
 bool setStateCUxD(String id, String value) {
   if (id.indexOf(".null.") == -1) {
     if (WiFi.status() == WL_CONNECTED) {
@@ -57,7 +59,7 @@ String getStateCUxD(String id, String type) {
 
       payload = payload.substring(payload.indexOf("<ret>"));
       payload = payload.substring(5, payload.indexOf("</ret>"));
-      DEBUG("result: " + payload, "setStateCUxD()", _slInformational);
+      DEBUG("result: " + payload, "getStateCUxD()", _slInformational);
 
       return payload;
     } else {
