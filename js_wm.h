@@ -48,6 +48,10 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
           qsa = document.querySelectorAll('[id$=_switch]'); 
           qsa.forEach(function(e) { e.style.display = 'none'; }); 
           break; 
+        case 2: 
+          qsa = document.querySelectorAll('[id$=_pow]'); 
+          qsa.forEach(function(e) { e.style.display = 'none'; }); 
+          break; 
       } 
     }
   }
