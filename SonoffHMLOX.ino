@@ -386,7 +386,7 @@ void loop() {
       }
     }
 
-    if ((millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
+    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender && (millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
       //PRESS_LONG
       DEBUG("Touch As Sender: PRESS_LONG", "loop()", _slInformational);
       if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_LONG", "true");
@@ -404,11 +404,11 @@ void loop() {
           if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_SHORT", "true");
           if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_SHORT");
         }
+        switchLED(Off);
       }
     }
     KeyPress = false;
     PRESS_LONGsent = false;
-    switchLED(Off);
   }
 
   //Timer
