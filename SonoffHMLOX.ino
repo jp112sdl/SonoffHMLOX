@@ -23,9 +23,9 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.9";
+const String FIRMWARE_VERSION = "1.0.10";
 //#define                       UDPDEBUG
-#define                       SERIALDEBUG
+//#define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
