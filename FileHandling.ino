@@ -15,7 +15,6 @@
 #define JSONCONFIG_HLW_CURRENTMULTIPLIER  "hlw_currentmultiplier"
 #define JSONCONFIG_HLW_VOLTAGEMULTIPLIER  "hlw_voltagemultiplier"
 #define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
-#define JSONCONFIG_HMTASDEVICE            "tasDevice"
 
 bool loadSystemConfig() {
   DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()",_slInformational);
@@ -45,7 +44,6 @@ bool loadSystemConfig() {
           //((json[JSONCONFIG_LOXUSERNAME]).as<String>()).toCharArray(LoxoneConfig.Username, VARIABLESIZE);
           //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
           ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
-          ((json[JSONCONFIG_HMTASDEVICE]).as<String>()).toCharArray(HomeMaticConfig.TasDevice, VARIABLESIZE);
           ((json[JSONCONFIG_HMPOWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
           GlobalConfig.MeasureInterval = json[JSONCONFIG_MEASUREINTERVAL];
           if (GlobalConfig.MeasureInterval == 0)
@@ -104,7 +102,6 @@ bool saveSystemConfig() {
   json[JSONCONFIG_GW] = SonoffNetConfig.gw;
   json[JSONCONFIG_CCUIP] = GlobalConfig.ccuIP;
   json[JSONCONFIG_SONOFF] = GlobalConfig.DeviceName;
-  json[JSONCONFIG_HMTASDEVICE] = HomeMaticConfig.TasDevice;
   json[JSONCONFIG_RESTOREOLDSTATE] = GlobalConfig.restoreOldRelayState;
   json[JSONCONFIG_LEDDISABLED] = GlobalConfig.LEDDisabled;
   json[JSONCONFIG_BACKENDTYPE] = GlobalConfig.BackendType;

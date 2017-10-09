@@ -247,7 +247,7 @@ void configHtml() {
   page += FPSTR(HTTP_TITLE_LABEL);
   page += FPSTR(HTTP_CONF);
 
-  if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
+  if (GlobalConfig.SonoffModel == SonoffModel_Switch || GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) {
     page += FPSTR(HTTP_CONF_ADD_SWITCH);
   }
 

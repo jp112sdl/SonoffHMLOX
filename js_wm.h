@@ -21,11 +21,6 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
     qsa.forEach(function(e) { 
       e.style.display = 'block'; 
       }); 
-
-    qsa = document.querySelectorAll('[id$=_tas]'); 
-    qsa.forEach(function(e) { 
-      e.style.display = 'block'; 
-      }); 
         
     if (backendtype) { 
       var flt; 
@@ -51,10 +46,6 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
           break; 
         case 1: 
           qsa = document.querySelectorAll('[id$=_switch]'); 
-          qsa.forEach(function(e) { e.style.display = 'none'; }); 
-          break; 
-        case 2: 
-          qsa = document.querySelectorAll('[id$=_tas]'); 
           qsa.forEach(function(e) { e.style.display = 'none'; }); 
           break; 
       } 

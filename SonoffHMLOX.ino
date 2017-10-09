@@ -24,7 +24,7 @@
 #include "js_fwupd.h"
 
 const String FIRMWARE_VERSION = "1.0.9";
-#define                       UDPDEBUG
+//#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
@@ -86,8 +86,8 @@ struct globalconfig_t {
 
 struct hmconfig_t {
   String ChannelName = "";
+  String ChannelNameSender = "";
   char PowerVariableName[VARIABLESIZE] = "";
-  char TasDevice[VARIABLESIZE] = "";
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
@@ -127,13 +127,13 @@ unsigned long LastHlwMeasureMillis = 0;
 unsigned long LastHlwCollectMillis = 0;
 unsigned long LastPingMillis = 0;
 unsigned long KeyPressDownMillis = 0;
-unsigned long KeyPressUpMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
 bool UDPReady = false;
 bool newFirmwareAvailable = false;
 bool startWifiManager = false;
 bool wm_shouldSaveConfig        = false;
+bool PRESS_LONGsent = false;
 #define wifiManagerDebugOutput   false
 
 ESP8266WebServer WebServer(80);
@@ -255,6 +255,12 @@ void setup() {
       Off = LOW;
       hlw_init();
       break;
+    case SonoffModel_TouchAsSender:
+      DEBUG("\nSonoff Modell = Touch as Sender");
+      LEDPin = 13;
+      On = LOW;
+      Off = HIGH;
+      break;
   }
 
   pinMode(LEDPin, OUTPUT);
@@ -294,10 +300,16 @@ void setup() {
 
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
-    if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
+    DEBUG("HomeMaticConfig.ChannelName =  " + HomeMaticConfig.ChannelName);
+    if (GlobalConfig.restoreOldRelayState && GlobalConfig.lastRelayState == true) {
       switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
     } else {
       switchRelay(RELAYSTATE_OFF, (getStateCUxD(HomeMaticConfig.ChannelName + ".STATE", "State") == "true"));
+    }
+
+    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) {
+      HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
+      DEBUG("HomeMaticConfig.ChannelNameSender =  " + HomeMaticConfig.ChannelNameSender);
     }
   }
 
@@ -367,20 +379,36 @@ void loop() {
         LastMillisKeyPress = millis();
         if (GlobalConfig.SonoffModel != SonoffModel_TouchAsSender) {
           toggleRelay(TRANSMITSTATE);
+        } else {
+          switchLED(On);
         }
         KeyPress = true;
       }
     }
+
+    if ((millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
+      //PRESS_LONG
+      DEBUG("Touch As Sender: PRESS_LONG", "loop()", _slInformational);
+      if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_LONG", "true");
+      if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_LONG");
+      switchLED(Off);
+      PRESS_LONGsent = true;
+    }
+
   } else {
-    if (KeyPress) {
-      KeyPressUpMillis = millis();
-      if ((KeyPressUpMillis - KeyPressDownMillis) > KEYPRESSLONGMILLIS) {
-        //LONG_PRESS
-      } else {
-        //SHORT_PRESS
+    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) {
+      if (KeyPress) {
+        if ((millis() - KeyPressDownMillis) < KEYPRESSLONGMILLIS) {
+          //PRESS_SHORT
+          DEBUG("Touch As Sender: PRESS_SHORT", "loop()", _slInformational);
+          if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_SHORT", "true");
+          if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_SHORT");
+        }
       }
     }
     KeyPress = false;
+    PRESS_LONGsent = false;
+    switchLED(Off);
   }
 
   //Timer
@@ -444,7 +472,7 @@ void toggleRelay(bool transmitState) {
 }
 
 void switchLED(bool State) {
-  if (GlobalConfig.SonoffModel == SonoffModel_Switch && GlobalConfig.LEDDisabled) {
+  if ((GlobalConfig.SonoffModel == SonoffModel_Switch || GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) && GlobalConfig.LEDDisabled) {
     digitalWrite(LEDPin, Off);
   } else {
     digitalWrite(LEDPin, State);
