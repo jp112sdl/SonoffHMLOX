@@ -6,7 +6,7 @@
 #define JSONCONFIG_LOXUDPPORT             "loxudpport"
 #define JSONCONFIG_LOXUSERNAME            "loxusername"
 #define JSONCONFIG_LOXPASSWORD            "loxpassword"
-#define JSONCONFIG_POWERVARIABLE          "powervariable"
+#define JSONCONFIG_HMPOWERVARIABLE        "powervariable"
 #define JSONCONFIG_MEASUREINTERVAL        "measureinterval"
 #define JSONCONFIG_BACKENDTYPE            "backendtype"
 #define JSONCONFIG_RESTOREOLDSTATE        "restoreOldState"
@@ -15,6 +15,7 @@
 #define JSONCONFIG_HLW_CURRENTMULTIPLIER  "hlw_currentmultiplier"
 #define JSONCONFIG_HLW_VOLTAGEMULTIPLIER  "hlw_voltagemultiplier"
 #define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
+#define JSONCONFIG_HMTASDEVICE            "tasDevice"
 
 bool loadSystemConfig() {
   DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()",_slInformational);
@@ -40,10 +41,12 @@ bool loadSystemConfig() {
           ((json[JSONCONFIG_GW]).as<String>()).toCharArray(SonoffNetConfig.gw, IPSIZE);
           ((json[JSONCONFIG_CCUIP]).as<String>()).toCharArray(GlobalConfig.ccuIP, IPSIZE);
           ((json[JSONCONFIG_SONOFF]).as<String>()).toCharArray(GlobalConfig.DeviceName, VARIABLESIZE);
+          
           //((json[JSONCONFIG_LOXUSERNAME]).as<String>()).toCharArray(LoxoneConfig.Username, VARIABLESIZE);
           //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
           ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
-          ((json[JSONCONFIG_POWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
+          ((json[JSONCONFIG_HMTASDEVICE]).as<String>()).toCharArray(HomeMaticConfig.TasDevice, VARIABLESIZE);
+          ((json[JSONCONFIG_HMPOWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
           GlobalConfig.MeasureInterval = json[JSONCONFIG_MEASUREINTERVAL];
           if (GlobalConfig.MeasureInterval == 0)
             GlobalConfig.MeasureInterval = 60;
@@ -101,13 +104,14 @@ bool saveSystemConfig() {
   json[JSONCONFIG_GW] = SonoffNetConfig.gw;
   json[JSONCONFIG_CCUIP] = GlobalConfig.ccuIP;
   json[JSONCONFIG_SONOFF] = GlobalConfig.DeviceName;
+  json[JSONCONFIG_HMTASDEVICE] = HomeMaticConfig.TasDevice;
   json[JSONCONFIG_RESTOREOLDSTATE] = GlobalConfig.restoreOldRelayState;
   json[JSONCONFIG_LEDDISABLED] = GlobalConfig.LEDDisabled;
   json[JSONCONFIG_BACKENDTYPE] = GlobalConfig.BackendType;
   //json[JSONCONFIG_LOXUSERNAME] = LoxoneConfig.Username;
   //json[JSONCONFIG_LOXPASSWORD] = LoxoneConfig.Password;
   json[JSONCONFIG_LOXUDPPORT] = LoxoneConfig.UDPPort;
-  json[JSONCONFIG_POWERVARIABLE] = HomeMaticConfig.PowerVariableName;
+  json[JSONCONFIG_HMPOWERVARIABLE] = HomeMaticConfig.PowerVariableName;
   json[JSONCONFIG_MEASUREINTERVAL] = GlobalConfig.MeasureInterval;
   if (GlobalConfig.MeasureInterval == 0) GlobalConfig.MeasureInterval = 60;
   json[JSONCONFIG_SONOFFMODEL] = GlobalConfig.SonoffModel;

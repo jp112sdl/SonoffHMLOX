@@ -1,11 +1,9 @@
 /*
-  Generic ESP8266 Module
+  Generic ESP8285 Module
   Flash Mode: DOUT
   Flash Frequency: 40 MHz
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
-  Reset Mode: ck
-  Upload Speed: 115200
 */
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -20,10 +18,14 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266Ping.h>
 #include <ESP8266mDNS.h>
+#include "css_global.h"
+#include "js_global.h"
+#include "js_pow.h"
+#include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.10";
-//#define                       UDPDEBUG
-//#define                       SERIALDEBUG
+const String FIRMWARE_VERSION = "1.0.9";
+#define                       UDPDEBUG
+#define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -40,6 +42,7 @@ const String FIRMWARE_VERSION = "1.0.10";
 #define UDPPORT             6676
 #define PING_ENABLED        false
 #define PINGINTERVALSECONDS  300
+#define KEYPRESSLONGMILLIS  1500 //Millisekunden für langen Tastendruck bei Sonoff Touch als Sender
 
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
 
@@ -55,7 +58,8 @@ enum BackendTypes_e {
 
 enum SonoffModel_e {
   SonoffModel_Switch,
-  SonoffModel_Pow
+  SonoffModel_Pow,
+  SonoffModel_TouchAsSender
 };
 
 enum RelayStates_e {
@@ -83,6 +87,7 @@ struct globalconfig_t {
 struct hmconfig_t {
   String ChannelName = "";
   char PowerVariableName[VARIABLESIZE] = "";
+  char TasDevice[VARIABLESIZE] = "";
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
@@ -121,6 +126,8 @@ unsigned long TimerStartMillis = 0;
 unsigned long LastHlwMeasureMillis = 0;
 unsigned long LastHlwCollectMillis = 0;
 unsigned long LastPingMillis = 0;
+unsigned long KeyPressDownMillis = 0;
+unsigned long KeyPressUpMillis = 0;
 int TimerSeconds = 0;
 bool OTAStart = false;
 bool UDPReady = false;
@@ -181,32 +188,30 @@ void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
 //
 
 void setup() {
-#ifdef SERIALDEBUG
   Serial.begin(115200);
-  DEBUG("\nSonoff " + WiFi.macAddress() + " startet...");
-#endif
+  Serial.println("\nSonoff " + WiFi.macAddress() + " startet...");
   pinMode(LEDPinSwitch, OUTPUT);
   pinMode(LEDPinPow,    OUTPUT);
   pinMode(RelayPin,     OUTPUT);
   pinMode(SwitchPin,    INPUT_PULLUP);
 
-  DEBUG(F("Config-Modus durch bootConfigMode aktivieren? "));
+  Serial.println(F("Config-Modus durch bootConfigMode aktivieren? "));
   if (SPIFFS.begin()) {
-    DEBUG(F("-> bootConfigModeFilename mounted file system"));
+    Serial.println(F("-> bootConfigModeFilename mounted file system"));
     if (SPIFFS.exists("/" + bootConfigModeFilename)) {
       startWifiManager = true;
-      DEBUG("-> " + bootConfigModeFilename + " existiert, starte Config-Modus");
+      Serial.println("-> " + bootConfigModeFilename + " existiert, starte Config-Modus");
       SPIFFS.remove("/" + bootConfigModeFilename);
       SPIFFS.end();
     } else {
-      DEBUG("-> " + bootConfigModeFilename + " existiert NICHT");
+      Serial.println("-> " + bootConfigModeFilename + " existiert NICHT");
     }
   } else {
-    DEBUG(F("-> Nein, SPIFFS mount fail!"));
+    Serial.println(F("-> Nein, SPIFFS mount fail!"));
   }
 
   if (!startWifiManager) {
-    DEBUG(F("Config-Modus mit Taster aktivieren?"));
+    Serial.println(F("Config-Modus mit Taster aktivieren?"));
     for (int i = 0; i < 20; i++) {
       if (digitalRead(SwitchPin) == LOW) {
         startWifiManager = true;
@@ -219,17 +224,22 @@ void setup() {
       digitalWrite(LEDPinPow, HIGH);
       delay(100);
     }
-    DEBUG("Config-Modus " + String(((startWifiManager) ? "" : "nicht ")) + "aktiviert.");
+    Serial.println("Config-Modus " + String(((startWifiManager) ? "" : "nicht ")) + "aktiviert.");
   }
 
   if (!loadSystemConfig()) startWifiManager = true;
   //Ab hier ist die Config geladen und alle Variablen sind mit deren Werten belegt!
 
   if (doWifiConnect()) {
-    DEBUG(F("WLAN erfolgreich verbunden!"));
+    Serial.println(F("\nWLAN erfolgreich verbunden!"));
     printWifiStatus();
   } else ESP.restart();
 
+#ifndef SERIALDEBUG
+  Serial.println("\nSerieller Debug nicht konfiguriert. Deshalb ist hier jetzt ENDE.\n");
+  delay(20); //to flush serial buffer
+  Serial.end();
+#endif
 
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
@@ -351,15 +361,25 @@ void loop() {
 
   //Tasterbedienung am Sonoff abarbeiten
   if (digitalRead(SwitchPin) == LOW) {
-    if (KeyPress == false) {
+    if (!KeyPress) {
+      KeyPressDownMillis = millis();
       if (millis() - LastMillisKeyPress > MillisKeyBounce) {
         LastMillisKeyPress = millis();
-        TimerSeconds = 0;
-        toggleRelay(TRANSMITSTATE);
+        if (GlobalConfig.SonoffModel != SonoffModel_TouchAsSender) {
+          toggleRelay(TRANSMITSTATE);
+        }
         KeyPress = true;
       }
     }
   } else {
+    if (KeyPress) {
+      KeyPressUpMillis = millis();
+      if ((KeyPressUpMillis - KeyPressDownMillis) > KEYPRESSLONGMILLIS) {
+        //LONG_PRESS
+      } else {
+        //SHORT_PRESS
+      }
+    }
     KeyPress = false;
   }
 
@@ -415,6 +435,7 @@ bool getRelayState() {
 }
 
 void toggleRelay(bool transmitState) {
+  TimerSeconds = 0;
   if (digitalRead(RelayPin) == LOW) {
     switchRelay(RELAYSTATE_ON, transmitState);
   } else  {
@@ -443,8 +464,8 @@ void blinkLED(int count) {
 }
 
 String IpAddress2String(const IPAddress& ipAddress) {
-  return String(ipAddress[0]) + String(".") +\
-  String(ipAddress[1]) + String(".") +\
-  String(ipAddress[2]) + String(".") +\
-  String(ipAddress[3]); 
+  return String(ipAddress[0]) + String(".") + \
+         String(ipAddress[1]) + String(".") + \
+         String(ipAddress[2]) + String(".") + \
+         String(ipAddress[3]);
 }

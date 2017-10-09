@@ -47,6 +47,7 @@ bool doWifiConnect() {
     //WiFiManagerParameter custom_loxpassword("loxpassword", "Loxone Password", "", VARIABLESIZE,4);
     WiFiManagerParameter custom_loxudpport("loxudpport", "Loxone UDP Port", LoxoneConfig.UDPPort, 10, 0, "pattern='[0-9]{1,5}'");
     WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
+    WiFiManagerParameter custom_tasdevice("tasdevice_tas", "CUxD Taster", HomeMaticConfig.TasDevice, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
 
     char*chrRestoreOldState = "0";
     if (GlobalConfig.restoreOldRelayState) chrRestoreOldState =  "1" ;
@@ -79,13 +80,15 @@ bool doWifiConnect() {
     String model = "";
     switch (GlobalConfig.SonoffModel) {
       case SonoffModel_Switch:
-        model = F("<option selected value='0'>Switch/S20</option><option value='1'>POW</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
         break;
       case SonoffModel_Pow:
-        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option><option value='2'>Touch als Sender</option>");
         break;
+      case SonoffModel_TouchAsSender:
+        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option selected value='2'>Touch als Sender</option>");  
       default:
-        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
         break;
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
@@ -100,6 +103,7 @@ bool doWifiConnect() {
     //wifiManager.addParameter(&custom_loxpassword);
     wifiManager.addParameter(&custom_loxudpport);
     wifiManager.addParameter(&custom_sonoffname);
+    wifiManager.addParameter(&custom_tasdevice);
     wifiManager.addParameter(&custom_powervariablename);
     wifiManager.addParameter(&custom_powermeasureinterval);
     wifiManager.addParameter(&custom_cbrestorestate);
@@ -158,6 +162,8 @@ bool doWifiConnect() {
       strcpy(LoxoneConfig.UDPPort, custom_loxudpport.getValue());
 
       strcpy(HomeMaticConfig.PowerVariableName, custom_powervariablename.getValue());
+      strcpy(HomeMaticConfig.TasDevice, custom_tasdevice.getValue());
+
       GlobalConfig.MeasureInterval = atoi(custom_powermeasureinterval.getValue());
 
       saveSystemConfig();
@@ -191,8 +197,8 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
 
 void printWifiStatus() {
   DEBUG("SSID: " + WiFi.SSID());
-  DEBUG("IP Address: " + String(WiFi.localIP()));
-  DEBUG("Gateway Address: " + String(WiFi.gatewayIP()));
+  DEBUG("IP Address: " + IpAddress2String(WiFi.localIP()));
+  DEBUG("Gateway Address: " + IpAddress2String(WiFi.gatewayIP()));
   DEBUG("signal strength (RSSI):" + String(WiFi.RSSI()) + " dBm");
 }
 
