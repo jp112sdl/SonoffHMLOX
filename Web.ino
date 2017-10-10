@@ -2,7 +2,7 @@ const char HTTP_TITLE_LABEL[] PROGMEM = "<div class='l lt'><label>{v}</label><hr
 const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label id='_ls'>{ls}</label></div>";
 const char HTTP_FW_LABEL[] PROGMEM = "<div class='l c k'><label>Firmware: {fw}</label></div>";
 const char HTTP_POWER_LABEL[] PROGMEM = "<table><tr><td class=tdl>Spannung</td><td class=tdr id='_v'>{hlw_v}</td><td class=tdl>V</td></tr><tr><td class=tdl>Strom</td><td class=tdr id='_c'>{hlw_c}</td><td class=tdl>A</td><tr><td class=tdl>Leistung</td><td class=tdr id='_w'>{hlw_w}</td><td class=tdl>W</td></tr><tr><td class=tdl>Leistung</td><td class=tdr id='_va'>{hlw_va}</td><td class=tdl>VA</td></tr></table>";
-const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' onclick='SetState(\"/1?t=\"+document.getElementById(\"timer\").value); return false;'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='' maxlength='5'></td></tr></table></div><div><button name='btnAction' onclick='SetState(\"/0\"); return false;'>AUS</button></div></span>";
+const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' onclick='SetState(\"/1?ts=1&t=\"+document.getElementById(\"timer\").value); return false;'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='' maxlength='5'></td></tr></table></div><div><button name='btnAction' onclick='SetState(\"/0?ts=1\"); return false;'>AUS</button></div></span>";
 const char HTTP_CONFIG_BUTTON[] PROGMEM = "<div></div><hr /><div></div><div><input class='lnkbtn' type='button' value='Konfiguration' onclick=\"window.location.href='/config'\" /></div>";
 const char HTTP_HOME_BUTTON[] PROGMEM = "<div><input class='lnkbtn' type='button' value='Zur&uuml;ck' onclick=\"window.location.href='/'\" /></div>";
 const char HTTP_SAVE_BUTTON[] PROGMEM = "<div><button name='btnSave' value='1' type='submit'>Speichern</button></div>";
@@ -19,6 +19,7 @@ const char HTTP_STATUSLABEL[] PROGMEM = "<div class='l c'>{sl}</div>";
 const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' id='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div><div><input class='fwbtn' id='fwbtnupdt' type='button' value='Firmwaredatei einspielen' onclick=\"window.location.href='/update'\" /></div>";
 
 void webSwitchRelayOn() {
+  bool _transmitstate = NO_TRANSMITSTATE;
   if (WebServer.args() > 0) {
     for (int i = 0; i < WebServer.args(); i++) {
       if (WebServer.argName(i) == "t") {
@@ -30,21 +31,40 @@ void webSwitchRelayOn() {
           DEBUG(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"));
         }
       }
+      if (WebServer.argName(i) == "ts") {
+        _transmitstate = WebServer.arg(i).toInt();
+      }
     }
   } else {
     TimerSeconds = 0;
     DEBUG(F("webSwitchRelayOn(), keine Parameter, TimerSeconds = 0"));
   }
-  switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
+  switchRelay(RELAYSTATE_ON, _transmitstate);
   sendDefaultWebCmdReply();
 }
 
 void webToggleRelay() {
-  toggleRelay(NO_TRANSMITSTATE);
+  bool _transmitstate = NO_TRANSMITSTATE;
+  if (WebServer.args() > 0) {
+    for (int i = 0; i < WebServer.args(); i++) {
+      if (WebServer.argName(i) == "ts") {
+        _transmitstate = WebServer.arg(i).toInt();
+      }
+    }
+  }
+  toggleRelay(_transmitstate);
   sendDefaultWebCmdReply();
 }
 void webSwitchRelayOff() {
-  switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
+  bool _transmitstate = NO_TRANSMITSTATE;
+  if (WebServer.args() > 0) {
+    for (int i = 0; i < WebServer.args(); i++) {
+      if (WebServer.argName(i) == "ts") {
+        _transmitstate = WebServer.arg(i).toInt();
+      }
+    }
+  }
+  switchRelay(RELAYSTATE_OFF, _transmitstate);
   sendDefaultWebCmdReply();
 }
 
@@ -121,8 +141,9 @@ void calibrateHtml() {
 void defaultHtml() {
   if (WebServer.args() > 0) {
     for (int i = 0; i < WebServer.args(); i++) {
-      if (WebServer.argName(i) == "btnAction")
+      if (WebServer.argName(i) == "btnAction") {
         switchRelay(WebServer.arg(i).toInt(), TRANSMITSTATE);
+      }
       if (WebServer.argName(i) == "timer") {
         TimerSeconds = WebServer.arg(i).toInt();
         if (TimerSeconds > 0) {
@@ -176,7 +197,7 @@ void defaultHtml() {
   fwurl.replace("api.", "");
   fwurl.replace("repos/", "");
   page.replace("{fwurl}", fwurl);
-  
+
   page += F("</div><script>");
   page += FPSTR(HTTP_CUSTOMSCRIPT);
   page += FPSTR(HTTP_CUSTOMUPDATESCRIPT);

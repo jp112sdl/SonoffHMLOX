@@ -23,7 +23,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.10";
+const String FIRMWARE_VERSION = "1.0.11";
 //#define                       UDPDEBUG
 //#define                       SERIALDEBUG
 
@@ -127,7 +127,7 @@ unsigned long LastHlwMeasureMillis = 0;
 unsigned long LastHlwCollectMillis = 0;
 unsigned long LastPingMillis = 0;
 unsigned long KeyPressDownMillis = 0;
-int TimerSeconds = 0;
+unsigned long TimerSeconds = 0;
 bool OTAStart = false;
 bool UDPReady = false;
 bool newFirmwareAvailable = false;
@@ -266,7 +266,9 @@ void setup() {
   pinMode(LEDPin, OUTPUT);
 
   WebServer.on("/0", webSwitchRelayOff);
+  WebServer.on("/off", webSwitchRelayOff);
   WebServer.on("/1", webSwitchRelayOn);
+  WebServer.on("/on", webSwitchRelayOn);
   WebServer.on("/2", webToggleRelay);
   WebServer.on("/toggle", webToggleRelay);
   WebServer.on("/getState", replyRelayState);
