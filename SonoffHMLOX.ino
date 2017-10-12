@@ -34,7 +34,7 @@ const String FIRMWARE_VERSION = "1.0.11";
 #define CF_PIN                14
 #define RelayPin              12
 #define SwitchPin              0
-#define MillisKeyBounce      500  //Millisekunden zwischen 2xtasten
+#define MillisKeyBounce      150  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
 #define HTTPTimeOut         3000  //Timeout (Millisekunden) für http requests
 #define IPSIZE                16
