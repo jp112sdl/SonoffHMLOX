@@ -17,30 +17,33 @@
 #define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
 
 bool loadSystemConfig() {
-  DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()",_slInformational);
+  DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()", _slInformational);
   if (SPIFFS.begin()) {
-    DEBUG(F("loadSystemConfig mounted file system"), "loadSystemConfig()",_slInformational);
+    DEBUG(F("loadSystemConfig mounted file system"), "loadSystemConfig()", _slInformational);
     if (SPIFFS.exists("/" + configJsonFile)) {
-      DEBUG(F("loadSystemConfig reading config file"), "loadSystemConfig()",_slInformational);
+      DEBUG(F("loadSystemConfig reading config file"), "loadSystemConfig()", _slInformational);
       File configFile = SPIFFS.open("/" + configJsonFile, "r");
       if (configFile) {
-        DEBUG(F("loadSystemConfig opened config file"), "loadSystemConfig()",_slInformational);
+        DEBUG(F("loadSystemConfig opened config file"), "loadSystemConfig()", _slInformational);
         size_t size = configFile.size();
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
         DynamicJsonBuffer jsonBuffer;
         JsonObject& json = jsonBuffer.parseObject(buf.get());
-        DEBUG("Content of JSON Config-File: /" + configJsonFile, "loadSystemConfig()",_slInformational);
+        DEBUG("Content of JSON Config-File: /" + configJsonFile, "loadSystemConfig()", _slInformational);
+#ifdef SERIALDEBUG
         json.printTo(Serial);
+        Serial.println();
+#endif
         if (json.success()) {
-          DEBUG("\nJSON OK", "loadSystemConfig()",_slInformational);
+          DEBUG("\nJSON OK", "loadSystemConfig()", _slInformational);
           ((json[JSONCONFIG_IP]).as<String>()).toCharArray(SonoffNetConfig.ip, IPSIZE);
           ((json[JSONCONFIG_NETMASK]).as<String>()).toCharArray(SonoffNetConfig.netmask, IPSIZE);
           ((json[JSONCONFIG_GW]).as<String>()).toCharArray(SonoffNetConfig.gw, IPSIZE);
           ((json[JSONCONFIG_CCUIP]).as<String>()).toCharArray(GlobalConfig.ccuIP, IPSIZE);
           ((json[JSONCONFIG_SONOFF]).as<String>()).toCharArray(GlobalConfig.DeviceName, VARIABLESIZE);
-          
+
           //((json[JSONCONFIG_LOXUSERNAME]).as<String>()).toCharArray(LoxoneConfig.Username, VARIABLESIZE);
           //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
           ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
@@ -77,24 +80,24 @@ bool loadSystemConfig() {
           }
 
         } else {
-          DEBUG(F("\nloadSystemConfig ERROR loading config"), "loadSystemConfig()",_slInformational);
+          DEBUG(F("\nloadSystemConfig ERROR loading config"), "loadSystemConfig()", _slInformational);
         }
       }
       return true;
     } else {
-      DEBUG("/" + configJsonFile + " not found.", "loadSystemConfig()",_slInformational);
+      DEBUG("/" + configJsonFile + " not found.", "loadSystemConfig()", _slInformational);
       return false;
     }
     SPIFFS.end();
   } else {
-    DEBUG(F("loadSystemConfig failed to mount FS"), "loadSystemConfig()",_slCritical);
+    DEBUG(F("loadSystemConfig failed to mount FS"), "loadSystemConfig()", _slCritical);
     return false;
   }
 }
 
 bool saveSystemConfig() {
   SPIFFS.begin();
-  DEBUG(F("saving config"), "saveSystemConfig()",_slInformational);
+  DEBUG(F("saving config"), "saveSystemConfig()", _slInformational);
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json[JSONCONFIG_IP] = SonoffNetConfig.ip;
@@ -122,11 +125,14 @@ bool saveSystemConfig() {
   SPIFFS.remove("/" + configJsonFile);
   File configFile = SPIFFS.open("/" + configJsonFile, "w");
   if (!configFile) {
-    DEBUG(F("failed to open config file for writing"), "saveSystemConfig()",_slCritical);
+    DEBUG(F("failed to open config file for writing"), "saveSystemConfig()", _slCritical);
     return false;
   }
 
+#ifdef SERIALDEBUG
   json.printTo(Serial);
+  Serial.println();
+#ifdef
   json.printTo(configFile);
   configFile.close();
   SPIFFS.end();
@@ -137,15 +143,15 @@ void setLastState(bool state) {
   GlobalConfig.lastRelayState = state;
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
-      DEBUG(F("setLastState mounted file system"), "setLastState()",_slInformational);
+      DEBUG(F("setLastState mounted file system"), "setLastState()", _slInformational);
       //SPIFFS.remove("/" + lastStateFilename);
       File setLastStateFile = SPIFFS.open("/" + lastRelayStateFilename, "w");
       setLastStateFile.print(state);
       setLastStateFile.close();
       SPIFFS.end();
-      DEBUG("setLastState (" + String(state) + ") saved.", "setLastState()",_slInformational);
+      DEBUG("setLastState (" + String(state) + ") saved.", "setLastState()", _slInformational);
     } else {
-      DEBUG(F("setLastState SPIFFS mount fail!"), "setLastState()",_slCritical);
+      DEBUG(F("setLastState SPIFFS mount fail!"), "setLastState()", _slCritical);
     }
   }
 }
@@ -153,23 +159,23 @@ void setLastState(bool state) {
 bool getLastState() {
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
-      DEBUG(F("getLastState mounted file system"), "getLastState()",_slInformational);
+      DEBUG(F("getLastState mounted file system"), "getLastState()", _slInformational);
       if (SPIFFS.exists("/" + lastRelayStateFilename)) {
-        DEBUG(lastRelayStateFilename + " existiert", "getLastState()",_slInformational);
+        DEBUG(lastRelayStateFilename + " existiert", "getLastState()", _slInformational);
         File lastStateFile = SPIFFS.open("/" + lastRelayStateFilename, "r");
         bool bLastState = false;
         if (lastStateFile && lastStateFile.size()) {
           String content = String(char(lastStateFile.read()));
-          DEBUG("getLastState FileContent = " + content, "getLastState()",_slInformational);
+          DEBUG("getLastState FileContent = " + content, "getLastState()", _slInformational);
           bLastState = (content == "1");
         }
         SPIFFS.end();
         return bLastState;
       } else {
-        DEBUG(lastRelayStateFilename + " existiert nicht", "getLastState()",_slInformational);
+        DEBUG(lastRelayStateFilename + " existiert nicht", "getLastState()", _slInformational);
       }
     } else {
-      DEBUG(F("getLastState SPIFFS mount fail!"), "getLastState()",_slCritical);
+      DEBUG(F("getLastState SPIFFS mount fail!"), "getLastState()", _slCritical);
       false;
     }
   } else {
@@ -179,13 +185,13 @@ bool getLastState() {
 
 void setBootConfigMode() {
   if (SPIFFS.begin()) {
-    DEBUG(F("setBootConfigMode mounted file system"), "setBootConfigMode()",_slInformational);
+    DEBUG(F("setBootConfigMode mounted file system"), "setBootConfigMode()", _slInformational);
     if (!SPIFFS.exists("/" + bootConfigModeFilename)) {
       File bootConfigModeFile = SPIFFS.open("/" + bootConfigModeFilename, "w");
       bootConfigModeFile.print("0");
       bootConfigModeFile.close();
       SPIFFS.end();
-      DEBUG(F("Boot to ConfigMode requested. Restarting..."), "setBootConfigMode()",_slInformational);
+      DEBUG(F("Boot to ConfigMode requested. Restarting..."), "setBootConfigMode()", _slInformational);
       WebServer.send(200, "text/plain", F("<state>enableBootConfigMode - Rebooting</state>"));
       delay(500);
       ESP.restart();
