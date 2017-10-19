@@ -1,5 +1,3 @@
-//CUxD.CUX2801001:10.PRESS_SHORT
-//CUxD.CUX2801001:10.PRESS_LONG
 bool setStateCUxD(String id, String value) {
   if (id.indexOf(".null.") == -1) {
     if (WiFi.status() == WL_CONNECTED) {

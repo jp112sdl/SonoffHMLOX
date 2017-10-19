@@ -132,7 +132,7 @@ bool saveSystemConfig() {
 #ifdef SERIALDEBUG
   json.printTo(Serial);
   Serial.println();
-#ifdef
+#endif
   json.printTo(configFile);
   configFile.close();
   SPIFFS.end();
