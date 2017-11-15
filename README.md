@@ -16,3 +16,4 @@ Wenn sich bereits eine ältere Version der hier angebotenen Firmware auf dem Son
 Wer "Danke" sagen möchte (in Form einer kleinen Spende), kann gern hier klicken: [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=UBX8NFNYVWW8N)
 
 <img src="Images/SonoffPow_HM_Web.png" width="300"> <img src="Images/Sonoff_LOX_Web.png" width="300">
+
