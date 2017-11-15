@@ -34,6 +34,7 @@ const String FIRMWARE_VERSION = "1.0.12";
 #define CF_PIN                14
 #define RelayPin              12
 #define SwitchPin              0
+#define SwitchGPIOPin14         14
 #define MillisKeyBounce      150  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
 #define HTTPTimeOut         3000  //Timeout (Millisekunden) für http requests
@@ -247,6 +248,7 @@ void setup() {
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
+      pinMode(SwitchGPIOPin1414, INPUT_PULLUP);
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
@@ -374,7 +376,7 @@ void loop() {
   WebServer.handleClient();
 
   //Tasterbedienung am Sonoff abarbeiten
-  if (digitalRead(SwitchPin) == LOW) {
+  if (digitalRead(SwitchPin) == LOW || digitalRead(SwitchGPIOPin14) == LOW) {
     if (!KeyPress) {
       KeyPressDownMillis = millis();
       if (millis() - LastMillisKeyPress > MillisKeyBounce) {
