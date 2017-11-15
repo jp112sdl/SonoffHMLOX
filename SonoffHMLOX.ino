@@ -119,6 +119,9 @@ const String lastRelayStateFilename = "laststat.txt";
 const String configJsonFile         = "config.json";
 bool RelayState = LOW;
 bool KeyPress = false;
+bool SwitchGPIOPin14AsSwitch = true;
+bool LastSwitchGPIOPin14State = HIGH;
+bool CurrentSwitchGPIO14State = HIGH;
 byte LEDPin = 13;
 byte On = 1;
 byte Off = 0;
@@ -248,7 +251,7 @@ void setup() {
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
-      pinMode(SwitchGPIOPin1414, INPUT_PULLUP);
+      pinMode(SwitchGPIOPin14, INPUT_PULLUP);
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
@@ -375,8 +378,17 @@ void loop() {
   //eingehende HTTP Anfragen abarbeiten
   WebServer.handleClient();
 
+  //GPIO14 als Schalter
+  if (!SwitchGPIOPin14AsSwitch) {
+    CurrentSwitchGPIO14State = digitalRead(SwitchGPIOPin14);
+    if (CurrentSwitchGPIO14State != LastSwitchGPIOPin14State) {
+      LastSwitchGPIOPin14State = CurrentSwitchGPIO14State;
+      switchRelay(CurrentSwitchGPIO14State, TRANSMITSTATE);
+    }
+  }
+  
   //Tasterbedienung am Sonoff abarbeiten
-  if (digitalRead(SwitchPin) == LOW || digitalRead(SwitchGPIOPin14) == LOW) {
+  if (digitalRead(SwitchPin) == LOW || (SwitchGPIOPin14AsSwitch && digitalRead(SwitchGPIOPin14) == LOW)) {
     if (!KeyPress) {
       KeyPressDownMillis = millis();
       if (millis() - LastMillisKeyPress > MillisKeyBounce) {
