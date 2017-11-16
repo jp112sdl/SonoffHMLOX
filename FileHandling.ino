@@ -15,6 +15,8 @@
 #define JSONCONFIG_HLW_CURRENTMULTIPLIER  "hlw_currentmultiplier"
 #define JSONCONFIG_HLW_VOLTAGEMULTIPLIER  "hlw_voltagemultiplier"
 #define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
+#define JSONCFONIG_GPIO14MODE             "gpio14mode"
+#define JSONCFONIG_GPIO14ASSENDER         "gpio14assender"
 
 bool loadSystemConfig() {
   DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()", _slInformational);
@@ -53,8 +55,10 @@ bool loadSystemConfig() {
             GlobalConfig.MeasureInterval = 60;
 
           GlobalConfig.BackendType = json[JSONCONFIG_BACKENDTYPE];
+          GlobalConfig.GPIO14Mode = json[JSONCFONIG_GPIO14MODE];
           GlobalConfig.restoreOldRelayState = json[JSONCONFIG_RESTOREOLDSTATE];
           GlobalConfig.LEDDisabled = json[JSONCONFIG_LEDDISABLED];
+          GlobalConfig.GPIO14asSender = json[JSONCFONIG_GPIO14ASSENDER];
           GlobalConfig.SonoffModel = json[JSONCONFIG_SONOFFMODEL];
           GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
 
@@ -115,6 +119,8 @@ bool saveSystemConfig() {
   json[JSONCONFIG_MEASUREINTERVAL] = GlobalConfig.MeasureInterval;
   if (GlobalConfig.MeasureInterval == 0) GlobalConfig.MeasureInterval = 60;
   json[JSONCONFIG_SONOFFMODEL] = GlobalConfig.SonoffModel;
+  json[JSONCFONIG_GPIO14MODE] = GlobalConfig.GPIO14Mode;
+  json[JSONCFONIG_GPIO14ASSENDER] = GlobalConfig.GPIO14asSender;
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     json[JSONCONFIG_HLW_CURRENTMULTIPLIER] = HLW8012Calibration.CurrentMultiplier;
