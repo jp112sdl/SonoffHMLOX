@@ -96,20 +96,23 @@ bool doWifiConnect() {
     String gpio14 = "";
     switch (GlobalConfig.GPIO14Mode) {
       case GPIO14Mode_OFF:
-        gpio14 = F("<option selected value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter</option>");
+        gpio14 = F("<option selected value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
         break;
       case GPIO14Mode_KEY:
-        gpio14 = F("<option value='0'>nicht verwendet</option><option selected value='1'>Taster</option><option value='2'>Schalter</option>");
+        gpio14 = F("<option value='0'>nicht verwendet</option><option selected value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
         break;
-      case GPIO14Mode_SWITCH:
-        gpio14 = F("<option value='0'>nicht verwendet</option><option value='1'>Taster</option><option selected value='2'>Schalter</option>");
+      case GPIO14Mode_SWITCH_ABSOLUT:
+        gpio14 = F("<option value='0'>nicht verwendet</option><option value='1'>Taster</option><option selected value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
+        break;
+      case GPIO14Mode_SWITCH_TOGGLE:
+        gpio14 = F("<option value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option selected value='3'>Schalter (toggle)</option>");
         break;
       default:
         gpio14 = F("<option selected value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter</option>");
         break;
     }
     WiFiManagerParameter custom_gpio14mode("gpio14mode_switch", "GPIO14 Mode", "", 8, 2, gpio14.c_str());
-    
+
     char*chrGPIO14asSender = "0";
     if (GlobalConfig.GPIO14asSender) chrGPIO14asSender =  "1" ;
     WiFiManagerParameter custom_gpio14assender("custom_gpio14assender_switch", "GPIO14 nur Sender: ", chrGPIO14asSender, 8, 1);

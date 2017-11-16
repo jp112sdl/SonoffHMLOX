@@ -11,7 +11,7 @@ const char HTTP_CALIB_INPUT[] PROGMEM = "<div><table><tr><td>Last (W):</td><td a
 const char HTTP_DOCALIB_BUTTON[] PROGMEM = "<div><button name='doCalibrate' value='1' type='submit'>Kalibrieren</button></div>";
 const char HTTP_UNDOCALIB_BUTTON[] PROGMEM = "<div><button name='undoCalibrate' value='1' type='submit'>Kalib. Reset</button></div>";
 const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input type='text' id='ccuip' name='ccuip' pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$' maxlength=16 placeholder='{st}' value='{ccuip}'></div><div><label>Ger&auml;tename:</label></div><div><input type='text' id='devicename' name='devicename' pattern='[A-Za-z0-9_ -]+' placeholder='Ger&auml;tename' value='{dn}'></div><div><label for='rstate' class='lcb' title='Stellt den Schaltzustand nach einer Stromunterbrechung wiederher'><input class 'cb' id='rstate' type='checkbox' name='rstate' {rs} value=1> {remanenz}</label></div>";
-const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<div id='div_gpio14mode'><label for='gpio14mode'>GPIO14 Mode</label><span class='ckb cob'><select id='gpio14mode' name='gpio14mode'><option {gpio14mode_off} value='0'>nicht verwendet</option><option {gpio14mode_key} value='1'>Taster</option><option {gpio14mode_switch} value='2'>Schalter</option></select></span></div><div><label class='lcb' for='gpio14assender'><input id='gpio14assender' class='cb' type='checkbox' name='gpio14assender' {gpio14assender} value=1> GPIO14 nur Sender</label></div><div><label class='lcb' for='leddisabled'><input id='leddisabled' class='cb' type='checkbox' name='leddisabled' {le} value=1> LED deaktiviert</label></div>";
+const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<div id='div_gpio14mode'><label for='gpio14mode'>GPIO14 Mode</label><span class='ckb cob'><select id='gpio14mode' name='gpio14mode'><option {gpio14mode_off} value='0'>nicht verwendet</option><option {gpio14mode_key} value='1'>Taster</option><option {gpio14mode_switch_abs} value='2'>Schalter (absolut)</option><option {gpio14mode_switch_tog} value='3'>Schalter (toggle)</option></select></span></div><div><label class='lcb' for='gpio14assender'><input id='gpio14assender' class='cb' type='checkbox' name='gpio14assender' {gpio14assender} value=1> GPIO14 nur Sender</label></div><div><label class='lcb' for='leddisabled'><input id='leddisabled' class='cb' type='checkbox' name='leddisabled' {le} value=1> LED deaktiviert</label></div>";
 const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
 const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><input type='text' id='lox_udpport' pattern='[0-9]{1,5}' maxlength='5' name='lox_udpport' placeholder='UDP Port' value='{udp}'></div>";
 const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}' pattern='[A-Za-z0-9_ -]+'></div>";
@@ -221,6 +221,7 @@ void configHtml() {
   if (WebServer.args() > 0) {
     GlobalConfig.restoreOldRelayState = false;
     GlobalConfig.LEDDisabled = false;
+    GlobalConfig.GPIO14asSender = false;
     for (int i = 0; i < WebServer.args(); i++) {
       if (WebServer.argName(i) == "btnSave")
         sc = (WebServer.arg(i).toInt() == 1);
@@ -278,22 +279,32 @@ void configHtml() {
       case GPIO14Mode_OFF:
         page.replace("{gpio14mode_off}", "selected");
         page.replace("{gpio14mode_key}", "");
-        page.replace("{gpio14mode_switch}", "");
+        page.replace("{gpio14mode_switch_abs}", "");
+        page.replace("{gpio14mode_switch_tog}", "");
         break;
       case GPIO14Mode_KEY:
         page.replace("{gpio14mode_off}", "");
         page.replace("{gpio14mode_key}", "selected");
-        page.replace("{gpio14mode_switch}", "");
+        page.replace("{gpio14mode_switch_abs}", "");
+        page.replace("{gpio14mode_switch_tog}", "");
         break;
-      case GPIO14Mode_SWITCH:
+      case GPIO14Mode_SWITCH_ABSOLUT:
         page.replace("{gpio14mode_off}", "");
         page.replace("{gpio14mode_key}", "");
-        page.replace("{gpio14mode_switch}", "selected");
+        page.replace("{gpio14mode_switch_abs}", "selected");
+        page.replace("{gpio14mode_switch_tog}", "");
+        break;
+      case GPIO14Mode_SWITCH_TOGGLE:
+        page.replace("{gpio14mode_off}", "");
+        page.replace("{gpio14mode_key}", "");
+        page.replace("{gpio14mode_switch_abs}", "");
+        page.replace("{gpio14mode_switch_tog}", "selected");
         break;
       default:
         page.replace("{gpio14mode_off}", "selected");
         page.replace("{gpio14mode_key}", "");
-        page.replace("{gpio14mode_switch}", "");
+        page.replace("{gpio14mode_switch_abs}", "");
+        page.replace("{gpio14mode_switch_tog}", "");
         break;
     }
     page.replace("{gpio14assender}", ((GlobalConfig.GPIO14asSender) ? "checked" : ""));

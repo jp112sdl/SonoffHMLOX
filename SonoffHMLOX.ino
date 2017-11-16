@@ -76,7 +76,8 @@ enum TransmitStates_e {
 enum GPIO14Modes_e {
   GPIO14Mode_OFF,
   GPIO14Mode_KEY,
-  GPIO14Mode_SWITCH
+  GPIO14Mode_SWITCH_ABSOLUT,
+  GPIO14Mode_SWITCH_TOGGLE
 };
 
 struct globalconfig_t {
@@ -390,14 +391,17 @@ void loop() {
 
     CurrentSwitchGPIO14State = digitalRead(SwitchGPIOPin14);
     //GPIO14 als Schalter
-    if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH) {
+    if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT || GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE) {
       if (CurrentSwitchGPIO14State != LastSwitchGPIOPin14State) {
         DEBUG("GPIO14 neuer Status = " + String(CurrentSwitchGPIO14State), "loop()", _slInformational);
         LastSwitchGPIOPin14State = CurrentSwitchGPIO14State;
         if (GlobalConfig.GPIO14asSender) {
           if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (!CurrentSwitchGPIO14State ? "true" : "false"));
         } else {
-          switchRelay(!CurrentSwitchGPIO14State, TRANSMITSTATE); //HIGH = off, LOW = on
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT)
+            switchRelay(!CurrentSwitchGPIO14State, TRANSMITSTATE); //HIGH = off, LOW = on
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE)
+            toggleRelay(TRANSMITSTATE);
         }
       }
     }
