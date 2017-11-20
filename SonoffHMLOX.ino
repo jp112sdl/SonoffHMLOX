@@ -23,9 +23,9 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.12";
+const String FIRMWARE_VERSION = "1.0.13";
 //#define                       UDPDEBUG
-//#define                       SERIALDEBUG
+#define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
 #define LEDPinPow             15
@@ -34,6 +34,7 @@ const String FIRMWARE_VERSION = "1.0.12";
 #define CF_PIN                14
 #define RelayPin              12
 #define SwitchPin              0
+#define SwitchGPIOPin14       14
 #define MillisKeyBounce      150  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
 #define HTTPTimeOut         3000  //Timeout (Millisekunden) für http requests
@@ -72,6 +73,13 @@ enum TransmitStates_e {
   TRANSMITSTATE
 };
 
+enum GPIO14Modes_e {
+  GPIO14Mode_OFF,
+  GPIO14Mode_KEY,
+  GPIO14Mode_SWITCH_ABSOLUT,
+  GPIO14Mode_SWITCH_TOGGLE
+};
+
 struct globalconfig_t {
   char ccuIP[IPSIZE]   = "";
   char DeviceName[VARIABLESIZE] = "";
@@ -80,6 +88,8 @@ struct globalconfig_t {
   int  MeasureInterval  = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
+  byte GPIO14Mode = GPIO14Mode_OFF;
+  bool GPIO14asSender = false;
   String Hostname = "Sonoff";
   bool LEDDisabled = false;
 } GlobalConfig;
@@ -118,6 +128,8 @@ const String lastRelayStateFilename = "laststat.txt";
 const String configJsonFile         = "config.json";
 bool RelayState = LOW;
 bool KeyPress = false;
+bool LastSwitchGPIOPin14State = HIGH;
+bool CurrentSwitchGPIO14State = HIGH;
 byte LEDPin = 13;
 byte On = 1;
 byte Off = 0;
@@ -247,6 +259,7 @@ void setup() {
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
+      pinMode(SwitchGPIOPin14, INPUT_PULLUP);
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
@@ -254,12 +267,14 @@ void setup() {
       On = HIGH;
       Off = LOW;
       hlw_init();
+      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
       break;
     case SonoffModel_TouchAsSender:
       DEBUG("\nSonoff Modell = Touch as Sender");
       LEDPin = 13;
       On = LOW;
       Off = HIGH;
+      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
       break;
   }
 
@@ -309,7 +324,7 @@ void setup() {
       switchRelay(RELAYSTATE_OFF, (getStateCUxD(HomeMaticConfig.ChannelName + ".STATE", "State") == "true"));
     }
 
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) {
+    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
       HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
       DEBUG("HomeMaticConfig.ChannelNameSender =  " + HomeMaticConfig.ChannelNameSender);
     }
@@ -332,108 +347,127 @@ void setup() {
 }
 
 void loop() {
-  //Überlauf der millis() abfangen
-  if (LastMillisKeyPress > millis())
-    LastMillisKeyPress = millis();
-  if (TimerStartMillis > millis())
-    TimerStartMillis = millis();
-  if (LastHlwMeasureMillis > millis())
-    LastHlwMeasureMillis = millis();
-  if (LastHlwCollectMillis > millis())
-    LastHlwCollectMillis = millis();
-  if (LastPingMillis > millis())
-    LastPingMillis = millis();
-
   //auf OTA Anforderung reagieren
   ArduinoOTA.handle();
 
-  //eingehende UDP Kommandos abarbeiten
-  String udpMessage = handleUDP();
-  if (udpMessage == "bootConfigMode")
-    setBootConfigMode;
-  if (udpMessage == "reboot")
-    ESP.restart();
-  if (udpMessage == "1" || udpMessage == "on")
-    switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
-  if (udpMessage == "0" || udpMessage == "off")
-    switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
-  if (udpMessage == "2" || udpMessage == "toggle")
-    toggleRelay(false);
-  if (udpMessage.indexOf("1?t=") != -1) {
-    TimerSeconds = (udpMessage.substring(4, udpMessage.length())).toInt();
-    if (TimerSeconds > 0) {
+  if (!OTAStart) {
+    //Überlauf der millis() abfangen
+    if (LastMillisKeyPress > millis())
+      LastMillisKeyPress = millis();
+    if (TimerStartMillis > millis())
       TimerStartMillis = millis();
-      DEBUG("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds), "loop()", _slInformational);
-    } else {
-      DEBUG(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"), "loop()", _slInformational);
+    if (LastHlwMeasureMillis > millis())
+      LastHlwMeasureMillis = millis();
+    if (LastHlwCollectMillis > millis())
+      LastHlwCollectMillis = millis();
+    if (LastPingMillis > millis())
+      LastPingMillis = millis();
+
+    //eingehende UDP Kommandos abarbeiten
+    String udpMessage = handleUDP();
+    if (udpMessage == "bootConfigMode")
+      setBootConfigMode;
+    if (udpMessage == "reboot")
+      ESP.restart();
+    if (udpMessage == "1" || udpMessage == "on")
+      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
+    if (udpMessage == "0" || udpMessage == "off")
+      switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
+    if (udpMessage == "2" || udpMessage == "toggle")
+      toggleRelay(false);
+    if (udpMessage.indexOf("1?t=") != -1) {
+      TimerSeconds = (udpMessage.substring(4, udpMessage.length())).toInt();
+      if (TimerSeconds > 0) {
+        TimerStartMillis = millis();
+        DEBUG("webSwitchRelayOn(), Timer aktiviert, Sekunden: " + String(TimerSeconds), "loop()", _slInformational);
+      } else {
+        DEBUG(F("webSwitchRelayOn(), Parameter, aber mit TimerSeconds = 0"), "loop()", _slInformational);
+      }
+      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
     }
-    switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
-  }
 
-  //eingehende HTTP Anfragen abarbeiten
-  WebServer.handleClient();
+    //eingehende HTTP Anfragen abarbeiten
+    WebServer.handleClient();
 
-  //Tasterbedienung am Sonoff abarbeiten
-  if (digitalRead(SwitchPin) == LOW) {
-    if (!KeyPress) {
-      KeyPressDownMillis = millis();
-      if (millis() - LastMillisKeyPress > MillisKeyBounce) {
-        LastMillisKeyPress = millis();
-        if (GlobalConfig.SonoffModel != SonoffModel_TouchAsSender) {
-          toggleRelay(TRANSMITSTATE);
+    CurrentSwitchGPIO14State = digitalRead(SwitchGPIOPin14);
+    //GPIO14 als Schalter
+    if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT || GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE) {
+      if (CurrentSwitchGPIO14State != LastSwitchGPIOPin14State) {
+        DEBUG("GPIO14 neuer Status = " + String(CurrentSwitchGPIO14State), "loop()", _slInformational);
+        LastSwitchGPIOPin14State = CurrentSwitchGPIO14State;
+        if (GlobalConfig.GPIO14asSender) {
+          if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (!CurrentSwitchGPIO14State ? "true" : "false"));
         } else {
-          switchLED(On);
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT)
+            switchRelay(!CurrentSwitchGPIO14State, TRANSMITSTATE); //HIGH = off, LOW = on
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE)
+            toggleRelay(TRANSMITSTATE);
         }
-        KeyPress = true;
       }
     }
 
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender && (millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
-      //PRESS_LONG
-      DEBUG("Touch As Sender: PRESS_LONG", "loop()", _slInformational);
-      if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_LONG", "true");
-      if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_LONG");
-      switchLED(Off);
-      PRESS_LONGsent = true;
-    }
-
-  } else {
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) {
-      if (KeyPress) {
-        if ((millis() - KeyPressDownMillis) < KEYPRESSLONGMILLIS) {
-          //PRESS_SHORT
-          DEBUG("Touch As Sender: PRESS_SHORT", "loop()", _slInformational);
-          if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_SHORT", "true");
-          if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_SHORT");
+    //Tasterbedienung am Sonoff abarbeiten
+    if (digitalRead(SwitchPin) == LOW || (GlobalConfig.GPIO14Mode == GPIO14Mode_KEY && CurrentSwitchGPIO14State == LOW)) {
+      if (!KeyPress) {
+        KeyPressDownMillis = millis();
+        if (millis() - LastMillisKeyPress > MillisKeyBounce) {
+          LastMillisKeyPress = millis();
+          if (GlobalConfig.SonoffModel != SonoffModel_TouchAsSender && !GlobalConfig.GPIO14asSender) {
+            toggleRelay(TRANSMITSTATE);
+          } else {
+            switchLED(On);
+          }
+          KeyPress = true;
         }
+      }
+
+      if ((GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.GPIO14asSender) && (millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
+        //PRESS_LONG
+        DEBUG("Touch or GPIO14 as Sender: PRESS_LONG", "loop()", _slInformational);
+        if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_LONG", "true");
+        if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_LONG");
         switchLED(Off);
+        PRESS_LONGsent = true;
       }
+
+    } else {
+      if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.GPIO14asSender) {
+        if (KeyPress) {
+          if ((millis() - KeyPressDownMillis) < KEYPRESSLONGMILLIS) {
+            //PRESS_SHORT
+            DEBUG("Touch or GPIO14 as Sender: PRESS_SHORT", "loop()", _slInformational);
+            if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_SHORT", "true");
+            if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_SHORT");
+          }
+          switchLED(Off);
+        }
+      }
+      KeyPress = false;
+      PRESS_LONGsent = false;
     }
-    KeyPress = false;
-    PRESS_LONGsent = false;
+
+    //Timer
+    if (TimerSeconds > 0 && millis() - TimerStartMillis > TimerSeconds * 1000) {
+      DEBUG(F("Timer abgelaufen. Schalte Relais aus."), "loop()", _slInformational);
+      switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
+    }
+
+    if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
+      LastPingMillis = millis();
+      DEBUG("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ", "loop()", _slInformational);
+      const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
+      IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+      bool ret = Ping.ping(pingHost);
+      DEBUG((ret) ? "success" : "fail", "loop()", _slInformational);
+    }
+
+    //POW Handling
+    if (GlobalConfig.SonoffModel == SonoffModel_Pow)
+      handleHLW8012();
+
+    //needed for UDP packet parser
+    delay(10);
   }
-
-  //Timer
-  if (TimerSeconds > 0 && millis() - TimerStartMillis > TimerSeconds * 1000) {
-    DEBUG(F("Timer abgelaufen. Schalte Relais aus."), "loop()", _slInformational);
-    switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
-  }
-
-  if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
-    LastPingMillis = millis();
-    DEBUG("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ", "loop()", _slInformational);
-    const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
-    IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
-    bool ret = Ping.ping(pingHost);
-    DEBUG((ret) ? "success" : "fail", "loop()", _slInformational);
-  }
-
-  //POW Handling
-  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    handleHLW8012();
-
-  //needed for UDP packet parser
-  delay(10);
 }
 
 void switchRelay(bool toState, bool transmitState) {

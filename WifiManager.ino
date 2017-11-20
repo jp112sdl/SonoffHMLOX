@@ -93,6 +93,30 @@ bool doWifiConnect() {
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
 
+    String gpio14 = "";
+    switch (GlobalConfig.GPIO14Mode) {
+      case GPIO14Mode_OFF:
+        gpio14 = F("<option selected value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
+        break;
+      case GPIO14Mode_KEY:
+        gpio14 = F("<option value='0'>nicht verwendet</option><option selected value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
+        break;
+      case GPIO14Mode_SWITCH_ABSOLUT:
+        gpio14 = F("<option value='0'>nicht verwendet</option><option value='1'>Taster</option><option selected value='2'>Schalter (absolut)</option><option value='3'>Schalter (toggle)</option>");
+        break;
+      case GPIO14Mode_SWITCH_TOGGLE:
+        gpio14 = F("<option value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter (absolut)</option><option selected value='3'>Schalter (toggle)</option>");
+        break;
+      default:
+        gpio14 = F("<option selected value='0'>nicht verwendet</option><option value='1'>Taster</option><option value='2'>Schalter</option>");
+        break;
+    }
+    WiFiManagerParameter custom_gpio14mode("gpio14mode_switch", "GPIO14 Mode", "", 8, 2, gpio14.c_str());
+
+    char*chrGPIO14asSender = "0";
+    if (GlobalConfig.GPIO14asSender) chrGPIO14asSender =  "1" ;
+    WiFiManagerParameter custom_gpio14assender("custom_gpio14assender_switch", "GPIO14 nur Sender: ", chrGPIO14asSender, 8, 1);
+
     WiFiManagerParameter custom_ip("custom_ip", "IP-Adresse", (String(SonoffNetConfig.ip) != "0.0.0.0") ? SonoffNetConfig.ip : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
     WiFiManagerParameter custom_netmask("custom_netmask", "Netzmaske", (String(SonoffNetConfig.netmask) != "0.0.0.0") ? SonoffNetConfig.netmask : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
     WiFiManagerParameter custom_gw("custom_gw", "Gateway",  (String(SonoffNetConfig.gw) != "0.0.0.0") ? SonoffNetConfig.gw : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
@@ -107,6 +131,8 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_powermeasureinterval);
     wifiManager.addParameter(&custom_cbrestorestate);
     wifiManager.addParameter(&custom_cbleddisabled);
+    wifiManager.addParameter(&custom_gpio14mode);
+    wifiManager.addParameter(&custom_gpio14assender);
     wifiManager.addParameter(&custom_backendtype);
     wifiManager.addParameter(&custom_text);
     wifiManager.addParameter(&custom_ip);
@@ -151,8 +177,10 @@ bool doWifiConnect() {
 
       GlobalConfig.restoreOldRelayState = (atoi(custom_cbrestorestate.getValue()) == 1);
       GlobalConfig.LEDDisabled = (atoi(custom_cbleddisabled.getValue()) == 1);
+      GlobalConfig.GPIO14asSender = (atoi(custom_gpio14assender.getValue()) == 1);
       GlobalConfig.BackendType = (atoi(custom_backendtype.getValue()));
       GlobalConfig.SonoffModel = (atoi(custom_sonoffmodel.getValue()));
+      GlobalConfig.GPIO14Mode = (atoi(custom_gpio14mode.getValue()));
 
       strcpy(GlobalConfig.ccuIP, custom_ccuip.getValue());
       strcpy(GlobalConfig.DeviceName, custom_sonoffname.getValue());

@@ -23,6 +23,34 @@ const char HTTP_ALL_STYLE[] PROGMEM = R"=====(
   .tdl {
     width: 1px;
   } 
+
+ .ckb{
+    float: right;
+    width: 18px;
+    text-align: right;
+  } 
+  
+  .cob { 
+    border: 1px solid #ccc; 
+    width: 180px; 
+    border-radius: 3px; 
+    overflow: hidden; 
+    background: #fafafa no-repeat 90% 50%;
+  } 
+  
+  .cob select { 
+    padding: 5px 8px; 
+    border: none; 
+    box-shadow: none; 
+    background: transparent; 
+    background-image: none; 
+    webkit-appearance: none; 
+    font-size: 1em;
+  }
+  
+  .cob select:focus { 
+    outline: none;
+  } 
   
   input.lnkbtn,input.fwbtn {
     -webkit-appearance: button;

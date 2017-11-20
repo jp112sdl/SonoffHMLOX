@@ -9,17 +9,17 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
     var ccu = document.getElementById('ccu'); 
     var qsa = document.querySelectorAll('[id^=div_]'); 
     qsa.forEach(function(e) { 
-      e.style.display = 'block'; 
+      e.style.display = 'run-in'; 
       }); 
       
     qsa = document.querySelectorAll('[id$=_pow]'); 
     qsa.forEach(function(e) { 
-      e.style.display = 'block'; 
+      e.style.display = 'run-in'; 
       });
        
     qsa = document.querySelectorAll('[id$=_switch]'); 
     qsa.forEach(function(e) { 
-      e.style.display = 'block'; 
+      e.style.display = 'run-in'; 
       }); 
         
     if (backendtype) { 
