@@ -6,6 +6,10 @@
 
 Für Informationen zur Einrichtung etc., bitte das [Wiki](https://github.com/jp112sdl/SonoffHMLOX/wiki) benutzen.
 
+Unterstützung weiterer Modelle:
+- eine Firmware für den Sonoff Dual / HVIO (als Schalt-Aktor) gibts [hier](https://github.com/jp112sdl/SonoffDualHVIOHMLOX) 
+- eine Firmware für den Sonoff Dual / HVIO (als Rollladen-Aktor) gibts [hier](https://github.com/jp112sdl/SonoffDualShutterHMLOX) 
+
 [![Github All Releases](https://img.shields.io/github/downloads/jp112sdl/SonoffHMLOX/total.svg)](https://github.com/jp112sdl/SonoffHMLOX/releases)
 [![GitHub issues](https://img.shields.io/github/issues/jp112sdl/SonoffHMLOX.svg)](https://github.com/jp112sdl/SonoffHMLOX/issues)
 
