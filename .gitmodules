@@ -1,9 +1,6 @@
 [submodule "libraries/ArduinoJson"]
 	path = libraries/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson/
-[submodule "libraries/ESP8266Ping"]
-	path = libraries/ESP8266Ping
-	url = https://github.com/dancol90/ESP8266Ping
 [submodule "libraries/hlw8012"]
 	path = libraries/hlw8012
 	url = https://bitbucket.org/xoseperez/hlw8012
