@@ -16,7 +16,6 @@
 #include <HLW8012.h>
 #include <Arduino.h>
 #include <ESP8266HTTPUpdateServer.h>
-#include <ESP8266Ping.h>
 #include <ESP8266mDNS.h>
 #include "css_global.h"
 #include "js_global.h"
@@ -41,8 +40,6 @@ const String FIRMWARE_VERSION = "1.0.14";
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
-#define PING_ENABLED        false
-#define PINGINTERVALSECONDS  300
 #define KEYPRESSLONGMILLIS  1500 //Millisekunden für langen Tastendruck bei Sonoff Touch als Sender
 
 const char GITHUB_REPO_URL[] PROGMEM = "https://api.github.com/repos/jp112sdl/SonoffHMLOX/releases/latest";
@@ -137,7 +134,6 @@ unsigned long LastMillisKeyPress = 0;
 unsigned long TimerStartMillis = 0;
 unsigned long LastHlwMeasureMillis = 0;
 unsigned long LastHlwCollectMillis = 0;
-unsigned long LastPingMillis = 0;
 unsigned long KeyPressDownMillis = 0;
 unsigned long TimerSeconds = 0;
 bool OTAStart = false;
@@ -360,8 +356,6 @@ void loop() {
       LastHlwMeasureMillis = millis();
     if (LastHlwCollectMillis > millis())
       LastHlwCollectMillis = millis();
-    if (LastPingMillis > millis())
-      LastPingMillis = millis();
 
     //eingehende UDP Kommandos abarbeiten
     String udpMessage = handleUDP();
@@ -450,15 +444,6 @@ void loop() {
     if (TimerSeconds > 0 && millis() - TimerStartMillis > TimerSeconds * 1000) {
       DEBUG(F("Timer abgelaufen. Schalte Relais aus."), "loop()", _slInformational);
       switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
-    }
-
-    if (PING_ENABLED && (LastPingMillis == 0 || millis() - LastPingMillis > PINGINTERVALSECONDS * 1000)) {
-      LastPingMillis = millis();
-      DEBUG("Ping Zentrale " + String(GlobalConfig.ccuIP) + " ... ", "loop()", _slInformational);
-      const char* ipStr = GlobalConfig.ccuIP; byte ipBytes[4]; parseBytes(ipStr, '.', ipBytes, 4, 10);
-      IPAddress pingHost = IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
-      bool ret = Ping.ping(pingHost);
-      DEBUG((ret) ? "success" : "fail", "loop()", _slInformational);
     }
 
     //POW Handling
