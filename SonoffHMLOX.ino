@@ -23,7 +23,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.13";
+const String FIRMWARE_VERSION = "1.0.14";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
