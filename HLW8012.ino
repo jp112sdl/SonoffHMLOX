@@ -90,10 +90,7 @@ void handleHLW8012() {
         hlw8012value.powerva = vatemp;
         hlw8012value.voltage = vtemp;
         hlw8012value.current = ctemp;
-
-        //Energy Counter calculation
-        hlw8012value.powerw_cumul += wtemp;       
-        hlw8012value.energy_counter = hlw8012value.powerw_cumul / ((((float)HLWCOLLECTINTERVAL / 1000) * hlwvalues.HlwCollectCounter)  * 360);
+        hlw8012value.energy_counter += wtemp / ((((float)HLWCOLLECTINTERVAL / 1000) * hlwvalues.HlwCollectCounter)  * 360);
         
         hlwvalues.HlwCollectCounter = 0;
       }

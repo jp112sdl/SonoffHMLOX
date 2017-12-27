@@ -173,12 +173,11 @@ struct hlwvalues_ {
 } hlwvalues;
 
 struct hlw8012value_t {
-  float voltage              = 0;
-  float current              = 0;
-  float powerw               = 0;
-  float powerva              = 0;
-  float energy_counter       = 0;
-  float powerw_cumul         = 0;
+  float voltage        = 0;
+  float current        = 0;
+  float powerw         = 0;
+  float powerva        = 0;
+  float energy_counter = 0;
 } hlw8012value;
 
 struct hlw8012calibrationdata_t {

@@ -389,7 +389,7 @@ void replyPowerJSON() {
 
 void replyPower() {
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    WebServer.send(200, "text/plain", "<voltage>" + String(hlw8012value.voltage) + "</voltage><current>" + String(hlw8012value.current) + "</current><powerw>" + String(hlw8012value.powerw) + "</powerw><powerva>" + String(hlw8012value.powerva) + "</powerva>");
+    WebServer.send(200, "text/plain", "<voltage>" + String(hlw8012value.voltage) + "</voltage><current>" + String(hlw8012value.current) + "</current><powerw>" + String(hlw8012value.powerw) + "</powerw><powerva>" + String(hlw8012value.powerva) + "</powerva><energycounter>"+String(hlw8012value.energy_counter)+"</energycounter>");
   else
     WebServer.send(200, "text/plain", "not supported");
 }
