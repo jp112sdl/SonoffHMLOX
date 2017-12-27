@@ -82,7 +82,7 @@ struct globalconfig_t {
   char DeviceName[VARIABLESIZE] = "";
   bool restoreOldRelayState = false;
   bool lastRelayState = false;
-  int  MeasureInterval  = 10;
+  int  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   byte GPIO14Mode = GPIO14Mode_OFF;
@@ -173,10 +173,12 @@ struct hlwvalues_ {
 } hlwvalues;
 
 struct hlw8012value_t {
-  float voltage = 0;
-  float current = 0;
-  float powerw  = 0;
-  float powerva = 0;
+  float voltage              = 0;
+  float current              = 0;
+  float powerw               = 0;
+  float powerva              = 0;
+  float energy_counter       = 0;
+  float powerw_cumul         = 0;
 } hlw8012value;
 
 struct hlw8012calibrationdata_t {
@@ -315,9 +317,9 @@ void setup() {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
     DEBUG("HomeMaticConfig.ChannelName =  " + HomeMaticConfig.ChannelName);
     if (GlobalConfig.restoreOldRelayState && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
+      switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
     } else {
-      switchRelay(RELAYSTATE_OFF, (getStateCUxD(HomeMaticConfig.ChannelName + ".STATE", "State") == "true"));
+      switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
     }
 
     if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {

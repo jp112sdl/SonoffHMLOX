@@ -90,6 +90,11 @@ void handleHLW8012() {
         hlw8012value.powerva = vatemp;
         hlw8012value.voltage = vtemp;
         hlw8012value.current = ctemp;
+
+        //Energy Counter calculation
+        hlw8012value.powerw_cumul += wtemp;       
+        hlw8012value.energy_counter = hlw8012value.powerw_cumul / ((((float)HLWCOLLECTINTERVAL / 1000) * hlwvalues.HlwCollectCounter)  * 360);
+        
         hlwvalues.HlwCollectCounter = 0;
       }
       
@@ -109,7 +114,7 @@ void handleHLW8012() {
 
   if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHlwMeasureMillis) > (GlobalConfig.MeasureInterval * 1000)) {
     LastHlwMeasureMillis = millis();
-    DEBUG("[HLW]: "+String(hlw8012value.powerw)+"W, "+String(hlw8012value.voltage)+"V, "+String(hlw8012value.current)+"A, "+String(hlw8012value.powerva)+"VA, Power Factor (%): "+String((int) (100 * hlw8012.getPowerFactor())));
+    DEBUG("[HLW]: "+String(hlw8012value.powerw)+"W, "+String(hlw8012value.voltage)+"V, "+String(hlw8012value.current)+"A, "+String(hlw8012value.powerva)+"VA, Power Factor (%): "+String((int) (100 * hlw8012.getPowerFactor()))+", ENERGY_COUNTER: "+String(hlw8012value.energy_counter)+"Wh");
     
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
       if (String(HomeMaticConfig.PowerVariableName) != "") {
