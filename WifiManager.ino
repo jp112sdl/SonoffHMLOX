@@ -57,6 +57,8 @@ bool doWifiConnect() {
     WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert: ", chrLEDDisabled, 8, 1);
 
     WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
+    WiFiManagerParameter custom_ecvariablename("hmecvariable_pow", "Variable f&uuml;r Energiez&auml;hler", HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
+    
     String del = String(GlobalConfig.MeasureInterval);
     char delBuf[8];
     del.toCharArray(delBuf, 8);
@@ -128,6 +130,7 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_loxudpport);
     wifiManager.addParameter(&custom_sonoffname);
     wifiManager.addParameter(&custom_powervariablename);
+    wifiManager.addParameter(&custom_ecvariablename);
     wifiManager.addParameter(&custom_powermeasureinterval);
     wifiManager.addParameter(&custom_cbrestorestate);
     wifiManager.addParameter(&custom_cbleddisabled);
@@ -189,6 +192,7 @@ bool doWifiConnect() {
       strcpy(LoxoneConfig.UDPPort, custom_loxudpport.getValue());
 
       strcpy(HomeMaticConfig.PowerVariableName, custom_powervariablename.getValue());
+      strcpy(HomeMaticConfig.EnergyCounterVariableName, custom_ecvariablename.getValue());
 
       GlobalConfig.MeasureInterval = atoi(custom_powermeasureinterval.getValue());
 

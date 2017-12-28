@@ -34,9 +34,9 @@ const String FIRMWARE_VERSION = "1.0.14";
 #define RelayPin              12
 #define SwitchPin              0
 #define SwitchGPIOPin14       14
-#define MillisKeyBounce      150  //Millisekunden zwischen 2xtasten
+#define MillisKeyBounce      100  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
-#define HTTPTimeOut         3000  //Timeout (Millisekunden) für http requests
+#define HTTPTimeOut         1500  //Timeout (Millisekunden) für http requests
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
@@ -95,6 +95,7 @@ struct hmconfig_t {
   String ChannelName = "";
   String ChannelNameSender = "";
   char PowerVariableName[VARIABLESIZE] = "";
+  char EnergyCounterVariableName[VARIABLESIZE] = "";
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
