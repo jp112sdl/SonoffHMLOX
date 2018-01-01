@@ -124,7 +124,6 @@ enum _SyslogSeverity {
 const String bootConfigModeFilename = "bootcfg.mod";
 const String lastRelayStateFilename = "laststat.txt";
 const String configJsonFile         = "config.json";
-bool WiFiDisconnected = true;
 bool RelayState = LOW;
 bool KeyPress = false;
 bool LastSwitchGPIOPin14State = HIGH;
