@@ -1,5 +1,5 @@
 bool setStateCUxD(String id, String value) {
-  if (id.indexOf(".null.") == -1) {
+  if (id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.setTimeout(HTTPTimeOut);
@@ -23,7 +23,6 @@ bool setStateCUxD(String id, String value) {
       payload = payload.substring(payload.indexOf("<ret>"));
       payload = payload.substring(5, payload.indexOf("</ret>"));
 
-
       DEBUG("result: " + payload, "setStateCUxD()", (payload != "null") ? _slInformational : _slError);
 
       return (payload != "null");
@@ -36,7 +35,7 @@ bool setStateCUxD(String id, String value) {
 }
 
 String getStateCUxD(String id, String type) {
-  if (id.indexOf(".null.") == -1) {
+  if (id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.setTimeout(HTTPTimeOut);
