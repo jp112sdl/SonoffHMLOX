@@ -28,7 +28,7 @@ bool doWifiConnect() {
       Serial.print(".");
       digitalWrite(LEDPinSwitch, (!(digitalRead(LEDPinSwitch))));
       digitalWrite(LEDPinPow, (!(digitalRead(LEDPinPow))));
-      if (waitCounter == 20) {
+      if (waitCounter == 30) {
         return false;
       }
       delay(500);
