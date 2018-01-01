@@ -23,7 +23,7 @@
 #include "js_fwupd.h"
 
 const String FIRMWARE_VERSION = "1.0.14";
-//#define                       UDPDEBUG
+#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
@@ -124,6 +124,7 @@ enum _SyslogSeverity {
 const String bootConfigModeFilename = "bootcfg.mod";
 const String lastRelayStateFilename = "laststat.txt";
 const String configJsonFile         = "config.json";
+bool WiFiDisconnected = true;
 bool RelayState = LOW;
 bool KeyPress = false;
 bool LastSwitchGPIOPin14State = HIGH;
@@ -195,7 +196,6 @@ void ICACHE_RAM_ATTR hlw8012_cf1_interrupt() {
 void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
   hlw8012.cf_interrupt();
 }
-//
 
 void setup() {
   Serial.begin(115200);
@@ -261,7 +261,7 @@ void setup() {
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
-      LEDPin = 15;
+      LEDPin = LEDPinPow;
       On = HIGH;
       Off = LOW;
       hlw_init();
@@ -311,8 +311,6 @@ void setup() {
 
   GlobalConfig.lastRelayState = getLastState();
 
-  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
-
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
     DEBUG("HomeMaticConfig.ChannelName =  " + HomeMaticConfig.ChannelName);
@@ -330,9 +328,9 @@ void setup() {
 
   if (GlobalConfig.BackendType == BackendType_Loxone) {
     if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
+      switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
     } else {
-      switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
+      switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
     }
   }
 
@@ -341,6 +339,7 @@ void setup() {
   DEBUG("Starte UDP-Handler an Port " + String(UDPPORT) + "...");
   UDPClient.UDP.begin(UDPPORT);
   UDPReady = true;
+  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
 }
 
