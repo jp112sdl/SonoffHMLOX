@@ -15,7 +15,7 @@ void hlwundocalibrate() {
   saveSystemConfig();
 }
 
-void hlwcalibrate(byte exp_voltage, byte exp_power ) {
+void hlwcalibrate(int exp_voltage, int exp_power ) {
   bool tmpOldState = RELAYSTATE_ON;
   if (RelayState == RELAYSTATE_OFF) {
     tmpOldState = RELAYSTATE_OFF;
