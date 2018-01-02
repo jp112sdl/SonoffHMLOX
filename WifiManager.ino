@@ -15,7 +15,7 @@ bool doWifiConnect() {
 
   if (!startWifiManager && _ssid != "" && _psk != "" ) {
     DEBUG(F("Connecting WLAN the classic way..."));
-    //WiFi.disconnect();
+    WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
     WiFi.hostname(GlobalConfig.Hostname);
     WiFi.begin(_ssid.c_str(), _psk.c_str());
@@ -58,7 +58,7 @@ bool doWifiConnect() {
 
     WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
     WiFiManagerParameter custom_ecvariablename("hmecvariable_pow", "Variable f&uuml;r Energiez&auml;hler", HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
-    
+
     String del = String(GlobalConfig.MeasureInterval);
     char delBuf[8];
     del.toCharArray(delBuf, 8);
