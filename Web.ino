@@ -249,7 +249,7 @@ void configHtml() {
         GlobalConfig.GPIO14asSender = (String(WebServer.arg(i)).toInt() == 1);
     }
     if (sc) {
-      setLastState(digitalRead(RelayPin));
+      setLastRelayState(digitalRead(RelayPin));
       saveSuccess = saveSystemConfig();
       if (GlobalConfig.BackendType == BackendType_HomeMatic) {
         String devName = getStateCUxD(GlobalConfig.DeviceName, "Address") ;

@@ -148,7 +148,7 @@ bool saveSystemConfig() {
   return true;
 }
 
-void setLastState(bool state) {
+void setLastRelayState(bool state) {
   GlobalConfig.lastRelayState = state;
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
@@ -165,7 +165,7 @@ void setLastState(bool state) {
   }
 }
 
-bool getLastState() {
+bool getLastRelayState() {
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
       DEBUG(F("getLastState mounted file system"), "getLastState()", _slInformational);
