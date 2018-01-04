@@ -299,6 +299,10 @@ void setup() {
   WebServer.on("/calibrate", calibrateHtml);
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
+  WebServer.on("/reloadCUxD", []() {
+    String ret = reloadCUxDAddress();
+    WebServer.send(200, "text/plain", ret);
+  });
   httpUpdater.setup(&WebServer);
   WebServer.onNotFound(defaultHtml);
 
@@ -308,20 +312,14 @@ void setup() {
     DEBUG("Error setting up MDNS responder!");
   }
 
-  GlobalConfig.lastRelayState = getLastState();
+  GlobalConfig.lastRelayState = getLastRelayState();
 
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
-    DEBUG("HomeMaticConfig.ChannelName =  " + HomeMaticConfig.ChannelName);
+    reloadCUxDAddress();
     if (GlobalConfig.restoreOldRelayState && GlobalConfig.lastRelayState == true) {
       switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
     } else {
       switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
-    }
-
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
-      HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
-      DEBUG("HomeMaticConfig.ChannelNameSender =  " + HomeMaticConfig.ChannelNameSender);
     }
   }
 
@@ -464,7 +462,7 @@ void switchRelay(bool toState, bool transmitState) {
   }
 
   digitalWrite(RelayPin, RelayState);
-  setLastState(RelayState);
+  setLastRelayState(RelayState);
 
   if (transmitState) {
     if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(RelayState));
