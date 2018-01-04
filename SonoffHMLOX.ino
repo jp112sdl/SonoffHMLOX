@@ -23,7 +23,7 @@
 #include "js_fwupd.h"
 
 const String FIRMWARE_VERSION = "1.0.15";
-#define                       UDPDEBUG
+//#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
