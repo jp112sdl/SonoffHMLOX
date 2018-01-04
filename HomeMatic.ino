@@ -29,10 +29,10 @@ bool setStateCUxD(String id, String value) {
 
     } else {
       DEBUG("setStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "setStateCUxD()", _slError);
-      if (!doWifiConnect()) {
+      /*if (!doWifiConnect()) {
         DEBUG("setStateCUxD: doWifiConnect() failed.", "setStateCUxD()", _slError);
         //ESP.restart();
-      }
+        }*/
     }
   } else return true;
 }
@@ -64,11 +64,28 @@ String getStateCUxD(String id, String type) {
       return payload;
     } else {
       DEBUG("getStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "getStateCUxD()", _slError);
-      if (!doWifiConnect()) {
+      /*if (!doWifiConnect()) {
         DEBUG("getStateCUxD: doWifiConnect() failed.", "getStateCUxD()", _slError);
         //ESP.restart();
-      }
+        }*/
     }
   } else return "";
+}
+
+String reloadCUxDAddress() {
+  String ret = "";
+  if (GlobalConfig.BackendType == BackendType_HomeMatic) {
+    HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
+    ret += "CUxD Address = " + HomeMaticConfig.ChannelName;
+    DEBUG("HomeMaticConfig.ChannelName = " + HomeMaticConfig.ChannelName);
+
+
+    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
+      HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
+      ret += " ; CUxD Address Sender = " + HomeMaticConfig.ChannelNameSender;
+      DEBUG("HomeMaticConfig.ChannelNameSender = " + HomeMaticConfig.ChannelNameSender);
+    }
+  }
+  return ret;
 }
 
