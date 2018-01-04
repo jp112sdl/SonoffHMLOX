@@ -15,7 +15,7 @@ void hlwundocalibrate() {
   saveSystemConfig();
 }
 
-void hlwcalibrate(byte exp_voltage, byte exp_power ) {
+void hlwcalibrate(int exp_voltage, int exp_power ) {
   bool tmpOldState = RELAYSTATE_ON;
   if (RelayState == RELAYSTATE_OFF) {
     tmpOldState = RELAYSTATE_OFF;
@@ -90,15 +90,19 @@ void handleHLW8012() {
         hlw8012value.powerva = vatemp;
         hlw8012value.voltage = vtemp;
         hlw8012value.current = ctemp;
+
+        if (wtemp > 0)
+          hlw8012value.energy_counter += (wtemp / 3600) * (((float)HLWCOLLECTINTERVAL / 1000) * hlwvalues.HlwCollectCounter);
+
         hlwvalues.HlwCollectCounter = 0;
       }
-      
+
       hlwvalues.ActivePower[hlwvalues.HlwCollectCounter] = hlw8012.getActivePower();
       hlwvalues.ApparentPower[hlwvalues.HlwCollectCounter] = hlw8012.getApparentPower();
       hlwvalues.Voltage[hlwvalues.HlwCollectCounter] = hlw8012.getVoltage();
       hlwvalues.Current[hlwvalues.HlwCollectCounter] = hlw8012.getCurrent();
       hlwvalues.HlwCollectCounter++;
-      
+
     } else {
       hlw8012value.powerw = 0;
       hlw8012value.powerva = 0;
@@ -109,12 +113,13 @@ void handleHLW8012() {
 
   if (!OTAStart && GlobalConfig.MeasureInterval > 0 &&  (millis() - LastHlwMeasureMillis) > (GlobalConfig.MeasureInterval * 1000)) {
     LastHlwMeasureMillis = millis();
-    DEBUG("[HLW]: "+String(hlw8012value.powerw)+"W, "+String(hlw8012value.voltage)+"V, "+String(hlw8012value.current)+"A, "+String(hlw8012value.powerva)+"VA, Power Factor (%): "+String((int) (100 * hlw8012.getPowerFactor())));
-    
+    DEBUG("[HLW]: " + String(hlw8012value.powerw) + "W, " + String(hlw8012value.voltage) + "V, " + String(hlw8012value.current) + "A, " + String(hlw8012value.powerva) + "VA, Power Factor (%): " + String((int) (100 * hlw8012.getPowerFactor())) + ", ENERGY_COUNTER: " + String(hlw8012value.energy_counter) + "Wh");
+
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-      if (String(HomeMaticConfig.PowerVariableName) != "") {
+      if (String(HomeMaticConfig.PowerVariableName) != "") 
         setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));
-      }
+      if (String(HomeMaticConfig.EnergyCounterVariableName) != "") 
+        setStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), String(hlw8012value.energy_counter));      
     }
   }
 }

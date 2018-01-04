@@ -7,6 +7,7 @@ function refresh() {
   document.getElementById('_c').innerHTML = json_obj.Current; 
   document.getElementById('_w').innerHTML = json_obj.PowerW; 
   document.getElementById('_va').innerHTML = json_obj.PowerVA; 
+  document.getElementById('_ec').innerHTML = json_obj.EnergyCounter; 
   setTimeout(function(){ refresh() }, {mi}); 
 } 
 )=====";

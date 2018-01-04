@@ -22,8 +22,8 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.14";
-//#define                       UDPDEBUG
+const String FIRMWARE_VERSION = "1.0.15";
+#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
 #define LEDPinSwitch          13
@@ -34,9 +34,9 @@ const String FIRMWARE_VERSION = "1.0.14";
 #define RelayPin              12
 #define SwitchPin              0
 #define SwitchGPIOPin14       14
-#define MillisKeyBounce      150  //Millisekunden zwischen 2xtasten
+#define MillisKeyBounce      100  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
-#define HTTPTimeOut         3000  //Timeout (Millisekunden) für http requests
+#define HTTPTimeOut         1500  //Timeout (Millisekunden) für http requests
 #define IPSIZE                16
 #define VARIABLESIZE         255
 #define UDPPORT             6676
@@ -82,7 +82,7 @@ struct globalconfig_t {
   char DeviceName[VARIABLESIZE] = "";
   bool restoreOldRelayState = false;
   bool lastRelayState = false;
-  int  MeasureInterval  = 10;
+  int  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   byte GPIO14Mode = GPIO14Mode_OFF;
@@ -95,6 +95,7 @@ struct hmconfig_t {
   String ChannelName = "";
   String ChannelNameSender = "";
   char PowerVariableName[VARIABLESIZE] = "";
+  char EnergyCounterVariableName[VARIABLESIZE] = "";
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
@@ -173,10 +174,11 @@ struct hlwvalues_ {
 } hlwvalues;
 
 struct hlw8012value_t {
-  float voltage = 0;
-  float current = 0;
-  float powerw  = 0;
-  float powerva = 0;
+  float voltage        = 0;
+  float current        = 0;
+  float powerw         = 0;
+  float powerva        = 0;
+  float energy_counter = 0;
 } hlw8012value;
 
 struct hlw8012calibrationdata_t {
@@ -193,7 +195,6 @@ void ICACHE_RAM_ATTR hlw8012_cf1_interrupt() {
 void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
   hlw8012.cf_interrupt();
 }
-//
 
 void setup() {
   Serial.begin(115200);
@@ -259,7 +260,7 @@ void setup() {
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
-      LEDPin = 15;
+      LEDPin = LEDPinPow;
       On = HIGH;
       Off = LOW;
       hlw_init();
@@ -298,6 +299,10 @@ void setup() {
   WebServer.on("/calibrate", calibrateHtml);
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
+  WebServer.on("/reloadCUxD", []() {
+    String ret = reloadCUxDAddress(TRANSMITSTATE);
+    WebServer.send(200, "text/plain", ret);
+  });
   httpUpdater.setup(&WebServer);
   WebServer.onNotFound(defaultHtml);
 
@@ -307,31 +312,15 @@ void setup() {
     DEBUG("Error setting up MDNS responder!");
   }
 
-  GlobalConfig.lastRelayState = getLastState();
-
-  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
-
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
-    DEBUG("HomeMaticConfig.ChannelName =  " + HomeMaticConfig.ChannelName);
-    if (GlobalConfig.restoreOldRelayState && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
-    } else {
-      switchRelay(RELAYSTATE_OFF, (getStateCUxD(HomeMaticConfig.ChannelName + ".STATE", "State") == "true"));
-    }
-
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
-      HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
-      DEBUG("HomeMaticConfig.ChannelNameSender =  " + HomeMaticConfig.ChannelNameSender);
-    }
+    reloadCUxDAddress(NO_TRANSMITSTATE);
   }
-
-  if (GlobalConfig.BackendType == BackendType_Loxone) {
-    if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, NO_TRANSMITSTATE);
-    } else {
-      switchRelay(RELAYSTATE_OFF, NO_TRANSMITSTATE);
-    }
+  
+  GlobalConfig.lastRelayState = getLastRelayState();
+  if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
+    switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
+  } else {
+    switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
   }
 
   startOTAhandling();
@@ -339,6 +328,7 @@ void setup() {
   DEBUG("Starte UDP-Handler an Port " + String(UDPPORT) + "...");
   UDPClient.UDP.begin(UDPPORT);
   UDPReady = true;
+  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
 }
 
@@ -464,7 +454,7 @@ void switchRelay(bool toState, bool transmitState) {
   }
 
   digitalWrite(RelayPin, RelayState);
-  setLastState(RelayState);
+  setLastRelayState(RelayState);
 
   if (transmitState) {
     if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(RelayState));

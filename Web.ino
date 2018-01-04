@@ -1,7 +1,7 @@
 const char HTTP_TITLE_LABEL[] PROGMEM = "<div class='l lt'><label>{v}</label><hr /></div>";
 const char HTTP_CURRENT_STATE_LABEL[] PROGMEM = "<div class='l ls'><label id='_ls'>{ls}</label></div>";
 const char HTTP_FW_LABEL[] PROGMEM = "<div class='l c k'><label>Firmware: {fw}</label></div>";
-const char HTTP_POWER_LABEL[] PROGMEM = "<table><tr><td class=tdl>Spannung</td><td class=tdr id='_v'>{hlw_v}</td><td class=tdl>V</td></tr><tr><td class=tdl>Strom</td><td class=tdr id='_c'>{hlw_c}</td><td class=tdl>A</td><tr><td class=tdl>Leistung</td><td class=tdr id='_w'>{hlw_w}</td><td class=tdl>W</td></tr><tr><td class=tdl>Leistung</td><td class=tdr id='_va'>{hlw_va}</td><td class=tdl>VA</td></tr></table>";
+const char HTTP_POWER_LABEL[] PROGMEM = "<table><tr><td class=tdl>Spannung</td><td class=tdr id='_v'>{hlw_v}</td><td class=tdl>V</td></tr><tr><td class=tdl>Strom</td><td class=tdr id='_c'>{hlw_c}</td><td class=tdl>A</td><tr><td class=tdl>Leistung</td><td class=tdr id='_w'>{hlw_w}</td><td class=tdl>W</td></tr><tr><td class=tdl>Leistung</td><td class=tdr id='_va'>{hlw_va}</td><td class=tdl>VA</td></tr><tr><td class=tdl>Energiez&auml;hler</td><td class=tdr id='_ec'>{hlw_ec}</td><td class=tdl>Wh</td></tr></table>";
 const char HTTP_ONOFF_BUTTONS[] PROGMEM = "<span class='l'><div><button name='btnAction' onclick='SetState(\"/1?ts=1&t=\"+document.getElementById(\"timer\").value); return false;'>AN</button></div><div><table><tr><td>Timer:</td><td align='right'><input class='i' type='text' id='timer' name='timer' placeholder='Sekunden' pattern='[0-9]{1,5}' value='' maxlength='5'></td></tr></table></div><div><button name='btnAction' onclick='SetState(\"/0?ts=1\"); return false;'>AUS</button></div></span>";
 const char HTTP_CONFIG_BUTTON[] PROGMEM = "<div></div><hr /><div></div><div><input class='lnkbtn' type='button' value='Konfiguration' onclick=\"window.location.href='/config'\" /></div>";
 const char HTTP_HOME_BUTTON[] PROGMEM = "<div><input class='lnkbtn' type='button' value='Zur&uuml;ck' onclick=\"window.location.href='/'\" /></div>";
@@ -15,7 +15,7 @@ const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<hr /><div><label>Nur Sonoff Switch
 const char HTTP_CONF_ADD_ALL[] PROGMEM = "<div><label class='lcb' for='leddisabled'><input id='leddisabled' class='cb' type='checkbox' name='leddisabled' {le} value=1> LED deaktiviert</label></div>";
 const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
 const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><input type='text' id='lox_udpport' pattern='[0-9]{1,5}' maxlength='5' name='lox_udpport' placeholder='UDP Port' value='{udp}'></div>";
-const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}' pattern='[A-Za-z0-9_ -]+'></div>";
+const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}' pattern='[A-Za-z0-9_ -]+'></div><div><label>Variable f&uuml;r Energiez&auml;hler:</label></div><div><input type='text' id='hmecvar' name='hmecvar' placeholder='Variablenname' value='{hmecvar}' pattern='[A-Za-z0-9_ -]+'></div>";
 const char HTTP_STATUSLABEL[] PROGMEM = "<div class='l c'>{sl}</div>";
 const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' id='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div><div><input class='fwbtn' id='fwbtnupdt' type='button' value='Firmwaredatei einspielen' onclick=\"window.location.href='/update'\" /></div>";
 
@@ -180,6 +180,7 @@ void defaultHtml() {
     page.replace("{hlw_v}", String(hlw8012value.voltage));
     page.replace("{hlw_w}", String(hlw8012value.powerw));
     page.replace("{hlw_va}", String(hlw8012value.powerva));
+    page.replace("{hlw_ec}", String(hlw8012value.energy_counter));
   }
 
   page += FPSTR(HTTP_CONFIG_BUTTON);
@@ -232,6 +233,8 @@ void configHtml() {
         GlobalConfig.MeasureInterval = String(WebServer.arg(i)).toInt();
       if  (WebServer.argName(i) == "hmpowvar")
         strcpy(HomeMaticConfig.PowerVariableName, WebServer.arg(i).c_str());
+      if  (WebServer.argName(i) == "hmecvar")
+        strcpy(HomeMaticConfig.EnergyCounterVariableName, WebServer.arg(i).c_str());
       if (WebServer.argName(i) == "devicename")
         strcpy(GlobalConfig.DeviceName, WebServer.arg(i).c_str());
       if (WebServer.argName(i) == "lox_udpport")
@@ -246,7 +249,7 @@ void configHtml() {
         GlobalConfig.GPIO14asSender = (String(WebServer.arg(i)).toInt() == 1);
     }
     if (sc) {
-      setLastState(digitalRead(RelayPin));
+      setLastRelayState(digitalRead(RelayPin));
       saveSuccess = saveSystemConfig();
       if (GlobalConfig.BackendType == BackendType_HomeMatic) {
         String devName = getStateCUxD(GlobalConfig.DeviceName, "Address") ;
@@ -320,6 +323,7 @@ void configHtml() {
     if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
       page += FPSTR(HTTP_CONF_HM_POW);
       page.replace("{hmpowvar}", HomeMaticConfig.PowerVariableName);
+      page.replace("{hmecvar}", HomeMaticConfig.EnergyCounterVariableName);
     }
     page.replace("{st}", "CCU2 IP");
     page.replace("{remanenz}", "Schaltzustand wiederherstellen");
@@ -381,14 +385,14 @@ void versionHtml() {
 
 void replyPowerJSON() {
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    WebServer.send(200, "application/json", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"" + String(hlw8012value.voltage) + "\",\"Current\":\"" + String(hlw8012value.current) + "\",\"PowerW\":\"" + String(hlw8012value.powerw) + "\",\"PowerVA\":\"" + String(hlw8012value.powerva) + "\",\"EnergyCounter\":\"" + String(hlw8012value.energy_counter) + "\"}");
   else
-    WebServer.send(200, "application/json", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\"}");
+    WebServer.send(200, "application/json", "{\"Voltage\":\"NaN\",\"Current\":\"NaN\",\"PowerW\":\"NaN\",\"PowerVA\":\"NaN\",\"EnergyCounter\":\"NaN\"}");
 }
 
 void replyPower() {
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    WebServer.send(200, "text/plain", "<voltage>" + String(hlw8012value.voltage) + "</voltage><current>" + String(hlw8012value.current) + "</current><powerw>" + String(hlw8012value.powerw) + "</powerw><powerva>" + String(hlw8012value.powerva) + "</powerva>");
+    WebServer.send(200, "text/plain", "<voltage>" + String(hlw8012value.voltage) + "</voltage><current>" + String(hlw8012value.current) + "</current><powerw>" + String(hlw8012value.powerw) + "</powerw><powerva>" + String(hlw8012value.powerva) + "</powerva><energycounter>" + String(hlw8012value.energy_counter) + "</energycounter>");
   else
     WebServer.send(200, "text/plain", "not supported");
 }

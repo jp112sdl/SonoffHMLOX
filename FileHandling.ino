@@ -3,20 +3,21 @@
 #define JSONCONFIG_GW                     "gw"
 #define JSONCONFIG_CCUIP                  "ccuip"
 #define JSONCONFIG_SONOFF                 "sonoff"
-#define JSONCONFIG_LOXUDPPORT             "loxudpport"
-#define JSONCONFIG_LOXUSERNAME            "loxusername"
-#define JSONCONFIG_LOXPASSWORD            "loxpassword"
-#define JSONCONFIG_HMPOWERVARIABLE        "powervariable"
-#define JSONCONFIG_MEASUREINTERVAL        "measureinterval"
-#define JSONCONFIG_BACKENDTYPE            "backendtype"
-#define JSONCONFIG_RESTOREOLDSTATE        "restoreOldState"
-#define JSONCONFIG_LEDDISABLED            "ledDisabled"
-#define JSONCONFIG_SONOFFMODEL            "sonoffmodel"
-#define JSONCONFIG_HLW_CURRENTMULTIPLIER  "hlw_currentmultiplier"
-#define JSONCONFIG_HLW_VOLTAGEMULTIPLIER  "hlw_voltagemultiplier"
-#define JSONCONFIG_HLW_POWERMULTIPLIER    "hlw_powermultiplier"
-#define JSONCFONIG_GPIO14MODE             "gpio14mode"
-#define JSONCFONIG_GPIO14ASSENDER         "gpio14assender"
+#define JSONCONFIG_LOXUDPPORT              "loxudpport"
+#define JSONCONFIG_LOXUSERNAME             "loxusername"
+#define JSONCONFIG_LOXPASSWORD             "loxpassword"
+#define JSONCONFIG_HMPOWERVARIABLE         "powervariable"
+#define JSONCONFIG_HMENERGYCOUNTERVARIABLE "ecvariable"
+#define JSONCONFIG_MEASUREINTERVAL         "measureinterval"
+#define JSONCONFIG_BACKENDTYPE             "backendtype"
+#define JSONCONFIG_RESTOREOLDSTATE         "restoreOldState"
+#define JSONCONFIG_LEDDISABLED             "ledDisabled"
+#define JSONCONFIG_SONOFFMODEL             "sonoffmodel"
+#define JSONCONFIG_HLW_CURRENTMULTIPLIER   "hlw_currentmultiplier"
+#define JSONCONFIG_HLW_VOLTAGEMULTIPLIER   "hlw_voltagemultiplier"
+#define JSONCONFIG_HLW_POWERMULTIPLIER     "hlw_powermultiplier"
+#define JSONCFONIG_GPIO14MODE              "gpio14mode"
+#define JSONCFONIG_GPIO14ASSENDER          "gpio14assender"
 
 bool loadSystemConfig() {
   DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()", _slInformational);
@@ -50,6 +51,7 @@ bool loadSystemConfig() {
           //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
           ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
           ((json[JSONCONFIG_HMPOWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
+          ((json[JSONCONFIG_HMENERGYCOUNTERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE);
           GlobalConfig.MeasureInterval = json[JSONCONFIG_MEASUREINTERVAL];
           if (GlobalConfig.MeasureInterval == 0)
             GlobalConfig.MeasureInterval = 60;
@@ -116,6 +118,7 @@ bool saveSystemConfig() {
   //json[JSONCONFIG_LOXPASSWORD] = LoxoneConfig.Password;
   json[JSONCONFIG_LOXUDPPORT] = LoxoneConfig.UDPPort;
   json[JSONCONFIG_HMPOWERVARIABLE] = HomeMaticConfig.PowerVariableName;
+  json[JSONCONFIG_HMENERGYCOUNTERVARIABLE] = HomeMaticConfig.EnergyCounterVariableName;
   json[JSONCONFIG_MEASUREINTERVAL] = GlobalConfig.MeasureInterval;
   if (GlobalConfig.MeasureInterval == 0) GlobalConfig.MeasureInterval = 60;
   json[JSONCONFIG_SONOFFMODEL] = GlobalConfig.SonoffModel;
@@ -145,7 +148,7 @@ bool saveSystemConfig() {
   return true;
 }
 
-void setLastState(bool state) {
+void setLastRelayState(bool state) {
   GlobalConfig.lastRelayState = state;
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
@@ -162,7 +165,7 @@ void setLastState(bool state) {
   }
 }
 
-bool getLastState() {
+bool getLastRelayState() {
   if (GlobalConfig.restoreOldRelayState) {
     if (SPIFFS.begin()) {
       DEBUG(F("getLastState mounted file system"), "getLastState()", _slInformational);

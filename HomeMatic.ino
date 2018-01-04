@@ -1,5 +1,5 @@
 bool setStateCUxD(String id, String value) {
-  if (id.indexOf(".null.") == -1) {
+  if (id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.setTimeout(HTTPTimeOut);
@@ -23,20 +23,22 @@ bool setStateCUxD(String id, String value) {
       payload = payload.substring(payload.indexOf("<ret>"));
       payload = payload.substring(5, payload.indexOf("</ret>"));
 
-
       DEBUG("result: " + payload, "setStateCUxD()", (payload != "null") ? _slInformational : _slError);
 
       return (payload != "null");
 
     } else {
-      if (!doWifiConnect())
-        ESP.restart();
+      DEBUG("setStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "setStateCUxD()", _slError);
+      /*if (!doWifiConnect()) {
+        DEBUG("setStateCUxD: doWifiConnect() failed.", "setStateCUxD()", _slError);
+        //ESP.restart();
+        }*/
     }
   } else return true;
 }
 
 String getStateCUxD(String id, String type) {
-  if (id.indexOf(".null.") == -1) {
+  if (id != "" && id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.setTimeout(HTTPTimeOut);
@@ -61,9 +63,30 @@ String getStateCUxD(String id, String type) {
 
       return payload;
     } else {
-      if (!doWifiConnect())
-        ESP.restart();
+      DEBUG("getStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "getStateCUxD()", _slError);
+      /*if (!doWifiConnect()) {
+        DEBUG("getStateCUxD: doWifiConnect() failed.", "getStateCUxD()", _slError);
+        //ESP.restart();
+        }*/
     }
-  } else return "";
+  } else return "null";
+}
+
+String reloadCUxDAddress(bool transmitState) {
+  String ret = "";
+  HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
+  ret += "CUxD Address = " + HomeMaticConfig.ChannelName;
+  DEBUG("HomeMaticConfig.ChannelName = " + HomeMaticConfig.ChannelName);
+
+
+  if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
+    HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
+    ret += " ; CUxD Address Sender = " + HomeMaticConfig.ChannelNameSender;
+    DEBUG("HomeMaticConfig.ChannelNameSender = " + HomeMaticConfig.ChannelNameSender);
+  }
+
+  if (transmitState == TRANSMITSTATE)
+    setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(getRelayState()));
+  return ret;
 }
 
