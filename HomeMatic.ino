@@ -74,17 +74,15 @@ String getStateCUxD(String id, String type) {
 
 String reloadCUxDAddress(bool transmitState) {
   String ret = "";
-  if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
-    ret += "CUxD Address = " + HomeMaticConfig.ChannelName;
-    DEBUG("HomeMaticConfig.ChannelName = " + HomeMaticConfig.ChannelName);
+  HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
+  ret += "CUxD Address = " + HomeMaticConfig.ChannelName;
+  DEBUG("HomeMaticConfig.ChannelName = " + HomeMaticConfig.ChannelName);
 
 
-    if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
-      HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
-      ret += " ; CUxD Address Sender = " + HomeMaticConfig.ChannelNameSender;
-      DEBUG("HomeMaticConfig.ChannelNameSender = " + HomeMaticConfig.ChannelNameSender);
-    }
+  if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || (GlobalConfig.GPIO14Mode != GPIO14Mode_OFF && GlobalConfig.GPIO14asSender)) {
+    HomeMaticConfig.ChannelNameSender =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName) + ":1", "Address");
+    ret += " ; CUxD Address Sender = " + HomeMaticConfig.ChannelNameSender;
+    DEBUG("HomeMaticConfig.ChannelNameSender = " + HomeMaticConfig.ChannelNameSender);
   }
 
   if (transmitState == TRANSMITSTATE)
