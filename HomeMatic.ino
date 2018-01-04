@@ -28,7 +28,7 @@ bool setStateCUxD(String id, String value) {
       return (payload != "null");
 
     } else {
-      DEBUG("setStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "setStateCUxD()", _slError);
+      DEBUG("setStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect", "setStateCUxD()", _slError);
       /*if (!doWifiConnect()) {
         DEBUG("setStateCUxD: doWifiConnect() failed.", "setStateCUxD()", _slError);
         //ESP.restart();
@@ -63,7 +63,7 @@ String getStateCUxD(String id, String type) {
 
       return payload;
     } else {
-      DEBUG("getStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect with doWifiConnect()", "getStateCUxD()", _slError);
+      DEBUG("getStateCUxD: WiFi.status() != WL_CONNECTED, trying to reconnect", "getStateCUxD()", _slError);
       /*if (!doWifiConnect()) {
         DEBUG("getStateCUxD: doWifiConnect() failed.", "getStateCUxD()", _slError);
         //ESP.restart();
