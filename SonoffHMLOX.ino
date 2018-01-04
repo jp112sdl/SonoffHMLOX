@@ -300,7 +300,7 @@ void setup() {
   WebServer.on("/getPower", replyPower);
   WebServer.on("/getPowerJSON", replyPowerJSON);
   WebServer.on("/reloadCUxD", []() {
-    String ret = reloadCUxDAddress();
+    String ret = reloadCUxDAddress(TRANSMITSTATE);
     WebServer.send(200, "text/plain", ret);
   });
   httpUpdater.setup(&WebServer);
@@ -312,23 +312,15 @@ void setup() {
     DEBUG("Error setting up MDNS responder!");
   }
 
-  GlobalConfig.lastRelayState = getLastRelayState();
-
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    reloadCUxDAddress();
-    if (GlobalConfig.restoreOldRelayState && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
-    } else {
-      switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
-    }
+    reloadCUxDAddress(NO_TRANSMITSTATE);
   }
-
-  if (GlobalConfig.BackendType == BackendType_Loxone) {
-    if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-      switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
-    } else {
-      switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
-    }
+  
+  GlobalConfig.lastRelayState = getLastRelayState();
+  if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
+    switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
+  } else {
+    switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
   }
 
   startOTAhandling();

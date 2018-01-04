@@ -38,7 +38,7 @@ bool setStateCUxD(String id, String value) {
 }
 
 String getStateCUxD(String id, String type) {
-  if (id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
+  if (id != "" && id.indexOf(".null.") == -1 && String(GlobalConfig.ccuIP) != "0.0.0.0") {
     if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
       http.setTimeout(HTTPTimeOut);
@@ -69,10 +69,10 @@ String getStateCUxD(String id, String type) {
         //ESP.restart();
         }*/
     }
-  } else return "";
+  } else return "null";
 }
 
-String reloadCUxDAddress() {
+String reloadCUxDAddress(bool transmitState) {
   String ret = "";
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
@@ -86,6 +86,9 @@ String reloadCUxDAddress() {
       DEBUG("HomeMaticConfig.ChannelNameSender = " + HomeMaticConfig.ChannelNameSender);
     }
   }
+
+  if (transmitState == TRANSMITSTATE)
+    setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(getRelayState()));
   return ret;
 }
 
