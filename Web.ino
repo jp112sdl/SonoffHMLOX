@@ -252,7 +252,7 @@ void configHtml() {
       setLastRelayState(digitalRead(RelayPin));
       saveSuccess = saveSystemConfig();
       if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-        String devName = getStateCUxD(GlobalConfig.DeviceName, "Address") ;
+        String devName = getStateCUxD(String(GlobalConfig.DeviceName), "Address") ;
         if (devName != "null") {
           showHMDevError = false;
           HomeMaticConfig.ChannelName =  "CUxD." + devName;

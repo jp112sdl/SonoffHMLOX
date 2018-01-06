@@ -74,7 +74,7 @@ String getStateCUxD(String id, String type) {
 
 String reloadCUxDAddress(bool transmitState) {
   String ret = "";
-  HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(GlobalConfig.DeviceName, "Address");
+  HomeMaticConfig.ChannelName =  "CUxD." + getStateCUxD(String(GlobalConfig.DeviceName), "Address");
   ret += "CUxD Address = " + HomeMaticConfig.ChannelName;
   DEBUG("HomeMaticConfig.ChannelName = " + HomeMaticConfig.ChannelName);
 
