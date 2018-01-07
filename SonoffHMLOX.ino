@@ -315,7 +315,7 @@ void setup() {
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     reloadCUxDAddress(NO_TRANSMITSTATE);
   }
-  
+
   GlobalConfig.lastRelayState = getLastRelayState();
   if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
     switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
@@ -328,7 +328,10 @@ void setup() {
   DEBUG("Starte UDP-Handler an Port " + String(UDPPORT) + "...");
   UDPClient.UDP.begin(UDPPORT);
   UDPReady = true;
-  switchLED(GlobalConfig.SonoffModel == SonoffModel_Pow);
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
+    switchLED(On);
+
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
 }
 
