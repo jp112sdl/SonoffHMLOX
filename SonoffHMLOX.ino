@@ -22,7 +22,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.17";
+const String FIRMWARE_VERSION = "1.0.18";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -126,6 +126,7 @@ const String lastRelayStateFilename = "laststat.txt";
 const String configJsonFile         = "config.json";
 bool RelayState = LOW;
 bool KeyPress = false;
+bool WiFiConnected = false;
 bool LastSwitchGPIOPin14State = HIGH;
 bool CurrentSwitchGPIO14State = HIGH;
 byte LEDPin = 13;
@@ -137,9 +138,9 @@ unsigned long LastHlwMeasureMillis = 0;
 unsigned long LastHlwCollectMillis = 0;
 unsigned long KeyPressDownMillis = 0;
 unsigned long TimerSeconds = 0;
+unsigned long LastWiFiReconnectMillis = 0;
 bool OTAStart = false;
 bool UDPReady = false;
-bool newFirmwareAvailable = false;
 bool startWifiManager = false;
 bool wm_shouldSaveConfig        = false;
 bool PRESS_LONGsent = false;
@@ -336,20 +337,37 @@ void setup() {
 }
 
 void loop() {
+  //Überlauf der millis() abfangen
+  if (LastMillisKeyPress > millis())
+    LastMillisKeyPress = millis();
+  if (TimerStartMillis > millis())
+    TimerStartMillis = millis();
+  if (LastHlwMeasureMillis > millis())
+    LastHlwMeasureMillis = millis();
+  if (LastHlwCollectMillis > millis())
+    LastHlwCollectMillis = millis();
+  if (LastWiFiReconnectMillis > millis())
+    LastWiFiReconnectMillis = millis();
+
+  //Reconnect WiFi wenn nicht verbunden (alle 30 Sekunden)
+  if (WiFi.status() != WL_CONNECTED) {
+    WiFiConnected = false;
+    if (millis() - LastWiFiReconnectMillis > 30000) {
+      LastWiFiReconnectMillis = millis();
+      DEBUG("WiFi Connection lost! Reconnecting...");
+      WiFi.reconnect();
+    }
+  } else {
+    if (!WiFiConnected) {
+      DEBUG("WiFi reconnected!");
+      WiFiConnected = true;
+    }
+  }
+
   //auf OTA Anforderung reagieren
   ArduinoOTA.handle();
 
   if (!OTAStart) {
-    //Überlauf der millis() abfangen
-    if (LastMillisKeyPress > millis())
-      LastMillisKeyPress = millis();
-    if (TimerStartMillis > millis())
-      TimerStartMillis = millis();
-    if (LastHlwMeasureMillis > millis())
-      LastHlwMeasureMillis = millis();
-    if (LastHlwCollectMillis > millis())
-      LastHlwCollectMillis = millis();
-
     //eingehende UDP Kommandos abarbeiten
     String udpMessage = handleUDP();
     if (udpMessage == "bootConfigMode")

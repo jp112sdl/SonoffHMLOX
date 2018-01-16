@@ -34,6 +34,7 @@ bool doWifiConnect() {
       delay(500);
     }
     DEBUG("Wifi Connected");
+    WiFiConnected = true;
     return true;
   } else {
     WiFiManager wifiManager;
