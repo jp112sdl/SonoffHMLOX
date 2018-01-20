@@ -19,6 +19,37 @@ const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistung
 const char HTTP_STATUSLABEL[] PROGMEM = "<div class='l c'>{sl}</div>";
 const char HTTP_NEWFW_BUTTON[] PROGMEM = "<div><input class='fwbtn' id='fwbtn' type='button' value='Neue Firmware verf&uuml;gbar' onclick=\"window.open('{fwurl}')\" /></div><div><input class='fwbtn' id='fwbtnupdt' type='button' value='Firmwaredatei einspielen' onclick=\"window.location.href='/update'\" /></div>";
 
+void initWebServerHandler() {
+  WebServer.on("/0", webSwitchRelayOff);
+  WebServer.on("/off", webSwitchRelayOff);
+  WebServer.on("/1", webSwitchRelayOn);
+  WebServer.on("/on", webSwitchRelayOn);
+  WebServer.on("/2", webToggleRelay);
+  WebServer.on("/toggle", webToggleRelay);
+  WebServer.on("/getState", replyRelayState);
+  WebServer.on("/bootConfigMode", setBootConfigMode);
+  WebServer.on("/reboot", []() {
+    WebServer.send(200, "text/plain", "rebooting");
+    delay(100);
+    ESP.restart();
+  });
+  WebServer.on("/restart", []() {
+    WebServer.send(200, "text/plain", "rebooting");
+    delay(100);
+    ESP.restart();
+  });
+  WebServer.on("/version", versionHtml);
+  WebServer.on("/firmware", versionHtml);
+  WebServer.on("/config", configHtml);
+  WebServer.on("/calibrate", calibrateHtml);
+  WebServer.on("/getPower", replyPower);
+  WebServer.on("/getPowerJSON", replyPowerJSON);
+  WebServer.on("/reloadCUxD", []() {
+    String ret = reloadCUxDAddress(TRANSMITSTATE);
+    WebServer.send(200, "text/plain", ret);
+  });
+  WebServer.onNotFound(defaultHtml);
+}
 
 void webSwitchRelayOn() {
   bool _transmitstate = NO_TRANSMITSTATE;

@@ -278,40 +278,14 @@ void setup() {
 
   pinMode(LEDPin, OUTPUT);
 
-  WebServer.on("/0", webSwitchRelayOff);
-  WebServer.on("/off", webSwitchRelayOff);
-  WebServer.on("/1", webSwitchRelayOn);
-  WebServer.on("/on", webSwitchRelayOn);
-  WebServer.on("/2", webToggleRelay);
-  WebServer.on("/toggle", webToggleRelay);
-  WebServer.on("/getState", replyRelayState);
-  WebServer.on("/bootConfigMode", setBootConfigMode);
-  WebServer.on("/reboot", []() {
-    WebServer.send(200, "text/plain", "rebooting");
-    ESP.restart();
-  });
-  WebServer.on("/restart", []() {
-    WebServer.send(200, "text/plain", "rebooting");
-    ESP.restart();
-  });
-  WebServer.on("/version", versionHtml);
-  WebServer.on("/firmware", versionHtml);
-  WebServer.on("/config", configHtml);
-  WebServer.on("/calibrate", calibrateHtml);
-  WebServer.on("/getPower", replyPower);
-  WebServer.on("/getPowerJSON", replyPowerJSON);
-  WebServer.on("/reloadCUxD", []() {
-    String ret = reloadCUxDAddress(TRANSMITSTATE);
-    WebServer.send(200, "text/plain", ret);
-  });
-  httpUpdater.setup(&WebServer);
-  WebServer.onNotFound(defaultHtml);
+  initWebServerHandler();
 
+  httpUpdater.setup(&WebServer);
   WebServer.begin();
 
-//  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
-//    DEBUG("Error setting up MDNS responder!");
-//  }
+  //  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
+  //    DEBUG("Error setting up MDNS responder!");
+  //  }
 
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     reloadCUxDAddress(NO_TRANSMITSTATE);
