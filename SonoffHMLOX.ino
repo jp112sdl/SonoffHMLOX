@@ -5,18 +5,18 @@
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
 */
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <ESP8266WebServer.h>
-#include <ArduinoOTA.h>
-#include "WM.h"
-#include <FS.h>
-#include <ArduinoJson.h>
-#include <WiFiUdp.h>
-#include <HLW8012.h>
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include <ArduinoOTA.h>
+#include <ESP8266HTTPClient.h>
 #include <ESP8266HTTPUpdateServer.h>
-#include <ESP8266mDNS.h>
+//#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266WiFi.h>
+#include <FS.h>
+#include <HLW8012.h>
+#include <WiFiUdp.h>
+#include "WM.h"
 #include "css_global.h"
 #include "js_global.h"
 #include "js_pow.h"
@@ -309,9 +309,9 @@ void setup() {
 
   WebServer.begin();
 
-  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
-    DEBUG("Error setting up MDNS responder!");
-  }
+//  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
+//    DEBUG("Error setting up MDNS responder!");
+//  }
 
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     reloadCUxDAddress(NO_TRANSMITSTATE);
