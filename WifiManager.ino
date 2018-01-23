@@ -15,7 +15,7 @@ bool doWifiConnect() {
 
   if (!startWifiManager && _ssid != "" && _psk != "" ) {
     DEBUG(F("Connecting WLAN the classic way..."));
-    //WiFi.disconnect(true);
+    //WiFi.disconnect();
     WiFi.mode(WIFI_STA);
     WiFi.hostname(GlobalConfig.Hostname);
     WiFi.begin(_ssid.c_str(), _psk.c_str());
