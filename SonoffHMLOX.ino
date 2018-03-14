@@ -4,6 +4,7 @@
   Flash Frequency: 40 MHz
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
+  esp8266/arduino core 2.4.x - working 16.02.5328a8b
 */
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -22,7 +23,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.20";
+const String FIRMWARE_VERSION = "1.0.21";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -375,7 +376,17 @@ void loop() {
         DEBUG("GPIO14 neuer Status = " + String(CurrentSwitchGPIO14State), "loop()", _slInformational);
         LastSwitchGPIOPin14State = CurrentSwitchGPIO14State;
         if (GlobalConfig.GPIO14asSender) {
-          if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (!CurrentSwitchGPIO14State ? "true" : "false"));
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT) {
+            if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (!CurrentSwitchGPIO14State ? "1" : "0"));
+          }
+          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE) {
+            if (GlobalConfig.BackendType == BackendType_HomeMatic) {
+              String currentState = getStateCUxD(HomeMaticConfig.ChannelNameSender + ".STATE", "State()");
+              DEBUG("CUxD Switch currentState = " + String(currentState));
+              setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (currentState == "false" ? "1" : "0"));
+            }
+          }
+
         } else {
           if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT)
             switchRelay(!CurrentSwitchGPIO14State, TRANSMITSTATE); //HIGH = off, LOW = on
