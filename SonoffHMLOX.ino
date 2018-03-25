@@ -23,7 +23,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.21";
+const String FIRMWARE_VERSION = "1.0.22";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -145,7 +145,7 @@ bool UDPReady = false;
 bool startWifiManager = false;
 bool wm_shouldSaveConfig        = false;
 bool PRESS_LONGsent = false;
-#define wifiManagerDebugOutput   false
+#define wifiManagerDebugOutput   true
 
 ESP8266WebServer WebServer(80);
 ESP8266HTTPUpdateServer httpUpdater;
