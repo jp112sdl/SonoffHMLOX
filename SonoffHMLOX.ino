@@ -200,7 +200,7 @@ void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\nSonoff " + WiFi.macAddress() + " startet...");
+  Serial.println("\nSonoff " + WiFi.macAddress() + " startet... (FW: "+FIRMWARE_VERSION+")");
   pinMode(LEDPinSwitch, OUTPUT);
   pinMode(LEDPinPow,    OUTPUT);
   pinMode(RelayPin,     OUTPUT);
