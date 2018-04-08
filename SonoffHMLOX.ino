@@ -11,7 +11,7 @@
 #include <ArduinoOTA.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266HTTPUpdateServer.h>
-//#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <FS.h>
@@ -200,7 +200,7 @@ void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\nSonoff " + WiFi.macAddress() + " startet... (FW: "+FIRMWARE_VERSION+")");
+  Serial.println("\nSonoff " + WiFi.macAddress() + " startet... (FW: " + FIRMWARE_VERSION + ")");
   pinMode(LEDPinSwitch, OUTPUT);
   pinMode(LEDPinPow,    OUTPUT);
   pinMode(RelayPin,     OUTPUT);
@@ -284,19 +284,8 @@ void setup() {
   httpUpdater.setup(&WebServer);
   WebServer.begin();
 
-  //  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
-  //    DEBUG("Error setting up MDNS responder!");
-  //  }
-
-  if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-    reloadCUxDAddress(NO_TRANSMITSTATE);
-  }
-
-  GlobalConfig.lastRelayState = getLastRelayState();
-  if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
-    switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
-  } else {
-    switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
+  if (!MDNS.begin(GlobalConfig.Hostname.c_str())) {
+    DEBUG("Error setting up MDNS responder!");
   }
 
   startOTAhandling();
@@ -307,6 +296,26 @@ void setup() {
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow)
     switchLED(On);
+
+  if (GlobalConfig.BackendType == BackendType_HomeMatic) {
+    reloadCUxDAddress(NO_TRANSMITSTATE);
+    byte tryCount = 0;
+    byte tryCountMax = 5;
+    while (HomeMaticConfig.ChannelName == "CUxD.") {
+      tryCount++;
+      DEBUG("Failed getting CUxD Device from HomeMaticConfig.ChannelName. Retry " + String(tryCount) + " / " + String(tryCountMax));
+      delay(1000);
+      reloadCUxDAddress(NO_TRANSMITSTATE);
+      if (tryCount == tryCountMax) break;
+    }
+  }
+
+  GlobalConfig.lastRelayState = getLastRelayState();
+  if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
+    switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
+  } else {
+    switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
+  }
 
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
 }
