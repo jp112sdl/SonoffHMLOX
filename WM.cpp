@@ -87,42 +87,14 @@ void WiFiManager::addParameter(WiFiManagerParameter *p) {
 }
 
 void WiFiManager::setupConfigPortal() {
+  DEBUG_WM(F("Starting Web Portal"));
+  // setup dns and web servers
   dnsServer.reset(new DNSServer());
   server.reset(new ESP8266WebServer(80));
-
-  DEBUG_WM(F(""));
-  _configPortalStart = millis();
-
-  DEBUG_WM(F("Configuring access point... "));
-  DEBUG_WM(_apName);
-  if (_apPassword != NULL) {
-    if (strlen(_apPassword) < 8 || strlen(_apPassword) > 63) {
-      // fail passphrase to short or long!
-      DEBUG_WM(F("Invalid AccessPoint password. Ignoring"));
-      _apPassword = NULL;
-    }
-    DEBUG_WM(_apPassword);
-  }
-
-  //optional soft ip config
-  if (_ap_static_ip) {
-    DEBUG_WM(F("Custom AP IP/GW/Subnet"));
-    WiFi.softAPConfig(_ap_static_ip, _ap_static_gw, _ap_static_sn);
-  }
-
-  if (_apPassword != NULL) {
-    WiFi.softAP(_apName, _apPassword);//password option
-  } else {
-    WiFi.softAP(_apName);
-  }
-
-  delay(500); // Without delay I've seen the IP address blank
-  DEBUG_WM(F("AP IP address: "));
-  DEBUG_WM(WiFi.softAPIP());
-
-  /* Setup the DNS server redirecting all the domains to the apIP */
   dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
-  dnsServer->start(DNS_PORT, "*", WiFi.softAPIP());
+  DEBUG_WM("dns server started with ip: ");
+  DEBUG_WM(WiFi.softAPIP());
+  dnsServer->start(DNS_PORT, F("*"), WiFi.softAPIP());
 
   /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
   server->on("/", std::bind(&WiFiManager::handleRoot, this));
@@ -137,7 +109,6 @@ void WiFiManager::setupConfigPortal() {
   server->onNotFound (std::bind(&WiFiManager::handleNotFound, this));
   server->begin(); // Web server start
   DEBUG_WM(F("HTTP server started"));
-
 }
 
 boolean WiFiManager::autoConnect() {
@@ -149,9 +120,6 @@ boolean WiFiManager::autoConnect(char const *apName, char const *apPassword) {
   DEBUG_WM(F(""));
   DEBUG_WM(F("AutoConnect"));
 
-  // read eeprom for ssid and pass
-  //String ssid = getSSID();
-  //String pass = getPassword();
 
   // attempt to connect; should it fail, fall back to AP
   WiFi.mode(WIFI_STA);
@@ -163,7 +131,7 @@ boolean WiFiManager::autoConnect(char const *apName, char const *apPassword) {
     return true;
   }
 
-  return startConfigPortal(apName, apPassword);
+  return startConfigPortal(apName);
 }
 
 boolean WiFiManager::configPortalHasTimeout() {
@@ -176,16 +144,15 @@ boolean WiFiManager::configPortalHasTimeout() {
 
 boolean WiFiManager::startConfigPortal() {
   String ssid = "ESP" + String(ESP.getChipId());
-  return startConfigPortal(ssid.c_str(), NULL);
+  return startConfigPortal(ssid.c_str());
 }
 
-boolean  WiFiManager::startConfigPortal(char const *apName, char const *apPassword) {
+boolean  WiFiManager::startConfigPortal(char const *apName) {
   //setup AP
-  WiFi.mode(WIFI_AP_STA);
-  DEBUG_WM("SET AP STA");
+  WiFi.mode(WIFI_AP);
+  DEBUG_WM("SET AP");
 
   _apName = apName;
-  _apPassword = apPassword;
 
   //notify we entered AP mode
   if ( _apcallback != NULL) {
@@ -194,7 +161,7 @@ boolean  WiFiManager::startConfigPortal(char const *apName, char const *apPasswo
 
   connect = false;
   setupConfigPortal();
-
+  int lcount = 0;
   while (1) {
 
     // check if timeout
@@ -316,27 +283,7 @@ void WiFiManager::startWPS() {
   WiFi.beginWPSConfig();
   DEBUG_WM("END WPS");
 }
-/*
-  String WiFiManager::getSSID() {
-  if (_ssid == "") {
-    DEBUG_WM(F("Reading SSID"));
-    _ssid = WiFi.SSID();
-    DEBUG_WM(F("SSID: "));
-    DEBUG_WM(_ssid);
-  }
-  return _ssid;
-  }
 
-  String WiFiManager::getPassword() {
-  if (_pass == "") {
-    DEBUG_WM(F("Reading Password"));
-    _pass = WiFi.psk();
-    DEBUG_WM("Password: " + _pass);
-    //DEBUG_WM(_pass);
-  }
-  return _pass;
-  }
-*/
 String WiFiManager::getConfigPortalSSID() {
   return _apName;
 }
@@ -361,12 +308,6 @@ void WiFiManager::setConnectTimeout(unsigned long seconds) {
 
 void WiFiManager::setDebugOutput(boolean debug) {
   _debug = debug;
-}
-
-void WiFiManager::setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn) {
-  _ap_static_ip = ip;
-  _ap_static_gw = gw;
-  _ap_static_sn = sn;
 }
 
 void WiFiManager::setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn) {
@@ -709,7 +650,7 @@ void WiFiManager::handleClearAllData() {
   page += FPSTR(HTTP_END);
   server->send(200, "text/html", page);
 
-  
+
   DEBUG_WM(F("handleClearAllData::WiFi.disconnect(true)"));
 
   //don't know, which one is the right one
@@ -724,7 +665,7 @@ void WiFiManager::handleClearAllData() {
 
   DEBUG_WM(F("handleClearAllData::Doing reset..."));
   // Fire Watchdog Reset
-  while(1);
+  while (1);
 }
 
 
