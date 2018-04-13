@@ -15,11 +15,10 @@ bool doWifiConnect() {
 
   if (!startWifiManager && _ssid != "" && _psk != "" ) {
     DEBUG(F("Connecting WLAN the classic way..."));
-    WiFi.disconnect();
     WiFi.mode(WIFI_STA);
     WiFi.hostname(GlobalConfig.Hostname);
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  
+    WiFi.setAutoReconnect(true);
     WiFi.begin(_ssid.c_str(), _psk.c_str());
     int waitCounter = 0;
     if (String(SonoffNetConfig.ip) != "0.0.0.0") WiFi.config(IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]), IPAddress(gwBytes[0], gwBytes[1], gwBytes[2], gwBytes[3]), IPAddress(netmaskBytes[0], netmaskBytes[1], netmaskBytes[2], netmaskBytes[3]));
@@ -34,8 +33,6 @@ bool doWifiConnect() {
       }
       delay(500);
     }
-    //sometimes static ip setting is not working - so we set it again
-    if (String(SonoffNetConfig.ip) != "0.0.0.0") WiFi.config(IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]), IPAddress(gwBytes[0], gwBytes[1], gwBytes[2], gwBytes[3]), IPAddress(netmaskBytes[0], netmaskBytes[1], netmaskBytes[2], netmaskBytes[3]));
 
     DEBUG("Wifi Connected");
     WiFiConnected = true;
