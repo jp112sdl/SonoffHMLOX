@@ -78,7 +78,7 @@ class WiFiManager
 
     //if you want to always start the config portal, without trying to connect first
     boolean       startConfigPortal();
-    boolean       startConfigPortal(char const *apName, char const *apPassword = NULL);
+    boolean       startConfigPortal(char const *apName);
 
     // get the AP name of the config portal, so it can be used in the callback
     String        getConfigPortalSSID();
@@ -98,8 +98,6 @@ class WiFiManager
     void          setDebugOutput(boolean debug);
     //defaults to not showing anything under 8% signal quality if called
     void          setMinimumSignalQuality(int quality = 8);
-    //sets a custom ip /gateway /subnet configuration
-    void          setAPStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
     //sets config for a static IP
     void          setSTAStaticIPConfig(IPAddress ip, IPAddress gw, IPAddress sn);
     //called when AP mode and config portal is started
@@ -137,9 +135,6 @@ class WiFiManager
     unsigned long _connectTimeout         = 0;
     unsigned long _configPortalStart      = 0;
 
-    IPAddress     _ap_static_ip;
-    IPAddress     _ap_static_gw;
-    IPAddress     _ap_static_sn;
     IPAddress     _sta_static_ip;
     IPAddress     _sta_static_gw;
     IPAddress     _sta_static_sn;
