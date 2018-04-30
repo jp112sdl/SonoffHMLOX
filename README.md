@@ -1,6 +1,6 @@
 # SonoffHMLOX
 
-## Alternative Firmware für die Geräte Sonoff Switch, S20, SV, Touch sowie POW
+## Alternative Firmware für die Geräte Sonoff Switch, S20, SV, Touch, POW und der [OBI WiFi Steckdose](https://www.obi.de/hausfunksteuerung/wifi-stecker-schuko/p/2291706)
 
 ### Hinweis: Die Modifizierung des Sonoff (wenn auch nur softwareseitig) erfolgt auf eigene Gefahr! Während der Arbeiten/des Flash-Vorgangs am geöffneten Gerät darf keine Netzspannung (230V) anliegen!
 
