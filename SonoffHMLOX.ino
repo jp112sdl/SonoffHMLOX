@@ -28,7 +28,7 @@ const String FIRMWARE_VERSION = "1.0.23";
 #define                       SERIALDEBUG
 
 #define ObiRelayOffPin         5
-#define ObiLEDPinSwitch        4
+#define LEDPinObi              4
 #define ObiSwitchPin          14
 
 #define SonoffSwitchPin        0
@@ -211,7 +211,7 @@ void setup() {
   pinMode(LEDPinSwitch,    OUTPUT);
   pinMode(LEDPinPow,       OUTPUT);
   pinMode(RelayPin,        OUTPUT);
-  pinMode(ObiLEDPinSwitch, OUTPUT);
+  pinMode(LEDPinObi,       OUTPUT);
   pinMode(SonoffSwitchPin, INPUT_PULLUP);
   pinMode(ObiSwitchPin,    INPUT_PULLUP);
 
@@ -238,11 +238,11 @@ void setup() {
         break;
       }
       digitalWrite(LEDPinSwitch, HIGH);
-      digitalWrite(ObiLEDPinSwitch, LOW);
+      digitalWrite(LEDPinObi, LOW);
       digitalWrite(LEDPinPow, LOW);
       delay(100);
       digitalWrite(LEDPinSwitch, LOW);
-      digitalWrite(ObiLEDPinSwitch, HIGH);
+      digitalWrite(LEDPinObi, HIGH);
       digitalWrite(LEDPinPow, HIGH);
       delay(100);
     }
@@ -265,38 +265,16 @@ void setup() {
 
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
-      DEBUG("\nSonoff Modell = Switch / S20");
-      SwitchPin = SonoffSwitchPin;
-      LEDPin = LEDPinSwitch;
-      On = LOW;
-      Off = HIGH;
-      pinMode(SwitchGPIOPin14, INPUT_PULLUP);
+      initModelSwitch();
       break;
     case SonoffModel_Pow:
-      DEBUG("\nSonoff Modell = POW");
-      SwitchPin = SonoffSwitchPin;
-      LEDPin = LEDPinPow;
-      On = HIGH;
-      Off = LOW;
-      hlw_init();
-      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
+      initModelPow();
       break;
     case SonoffModel_TouchAsSender:
-      DEBUG("\nSonoff Modell = Touch as Sender");
-      SwitchPin = SonoffSwitchPin;
-      LEDPin = LEDPinSwitch;
-      On = LOW;
-      Off = HIGH;
-      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
+      initModelTouchAsSender();
       break;
     case SonoffModel_ObiZwischenstecker:
-      DEBUG("\nSonoff Modell = Obi Zwischenstecker");
-      LEDPin = ObiLEDPinSwitch;
-      pinMode(ObiRelayOffPin,  OUTPUT);
-      SwitchPin = ObiSwitchPin;
-      On = HIGH;
-      Off = LOW;
-      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
+      initModelObi();
       break;
   }
 
@@ -402,72 +380,11 @@ void loop() {
     //eingehende HTTP Anfragen abarbeiten
     WebServer.handleClient();
 
-    CurrentSwitchGPIO14State = digitalRead(SwitchGPIOPin14);
-    //GPIO14 als Schalter
-    if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT || GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE) {
-      if (CurrentSwitchGPIO14State != LastSwitchGPIOPin14State) {
-        DEBUG("GPIO14 neuer Status = " + String(CurrentSwitchGPIO14State), "loop()", _slInformational);
-        LastSwitchGPIOPin14State = CurrentSwitchGPIO14State;
-        if (GlobalConfig.GPIO14asSender) {
-          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT) {
-            if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (!CurrentSwitchGPIO14State ? "1" : "0"));
-          }
-          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE) {
-            if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-              String currentState = getStateCUxD(HomeMaticConfig.ChannelNameSender + ".STATE", "State()");
-              DEBUG("CUxD Switch currentState = " + String(currentState));
-              setStateCUxD(HomeMaticConfig.ChannelNameSender + ".SET_STATE",  (currentState == "false" ? "1" : "0"));
-            }
-          }
-
-        } else {
-          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_ABSOLUT)
-            switchRelay(!CurrentSwitchGPIO14State, TRANSMITSTATE); //HIGH = off, LOW = on
-          if (GlobalConfig.GPIO14Mode == GPIO14Mode_SWITCH_TOGGLE)
-            toggleRelay(TRANSMITSTATE);
-        }
-      }
-    }
+    //GPIO14 am Sonoff Switch 
+    gpio14Handling();
 
     //Tasterbedienung am Sonoff abarbeiten
-    if (digitalRead(SwitchPin) == LOW || (GlobalConfig.GPIO14Mode == GPIO14Mode_KEY && CurrentSwitchGPIO14State == LOW)) {
-      if (!KeyPress) {
-        KeyPressDownMillis = millis();
-        if (millis() - LastMillisKeyPress > MillisKeyBounce) {
-          LastMillisKeyPress = millis();
-          if (GlobalConfig.SonoffModel != SonoffModel_TouchAsSender && !GlobalConfig.GPIO14asSender) {
-            toggleRelay(TRANSMITSTATE);
-          } else {
-            switchLED(On);
-          }
-          KeyPress = true;
-        }
-      }
-
-      if ((GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.GPIO14asSender) && (millis() - KeyPressDownMillis) > KEYPRESSLONGMILLIS && !PRESS_LONGsent) {
-        //PRESS_LONG
-        DEBUG("Touch or GPIO14 as Sender: PRESS_LONG", "loop()", _slInformational);
-        if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_LONG", "true");
-        if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_LONG");
-        switchLED(Off);
-        PRESS_LONGsent = true;
-      }
-
-    } else {
-      if (GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.GPIO14asSender) {
-        if (KeyPress) {
-          if ((millis() - KeyPressDownMillis) < KEYPRESSLONGMILLIS) {
-            //PRESS_SHORT
-            DEBUG("Touch or GPIO14 as Sender: PRESS_SHORT", "loop()", _slInformational);
-            if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelNameSender + ".PRESS_SHORT", "true");
-            if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + ":1 = PRESS_SHORT");
-          }
-          switchLED(Off);
-        }
-      }
-      KeyPress = false;
-      PRESS_LONGsent = false;
-    }
+    switchHandling();
 
     //Timer
     if (TimerSeconds > 0 && millis() - TimerStartMillis > TimerSeconds * 1000) {
@@ -484,86 +401,4 @@ void loop() {
   }
 }
 
-void switchRelay(bool toState, bool transmitState) {
-  RelayState = toState;
-  DEBUG("Switch Relay to " + String(toState) + " with transmitState = " + String(transmitState), "switchRelay()", _slInformational);
 
-  if (toState == RELAYSTATE_OFF) {
-    TimerSeconds = 0;
-  }
-
-  if (GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker) {
-    if (RelayState == RELAYSTATE_ON) {
-      DEBUG("ObiModus! - nutze RelayOnPin", "switchRelay()", _slInformational);
-      digitalWrite(RelayPin, LOW);
-      digitalWrite(ObiRelayOffPin, HIGH);
-      //delay(250);
-      //digitalWrite(RelayOnPin, HIGH);
-    } else {
-      DEBUG("ObiModus! - nutze RelayOffPin", "switchRelay()", _slInformational);
-      digitalWrite(ObiRelayOffPin, LOW);
-      digitalWrite(RelayPin, HIGH);
-      //delay(250);
-      //digitalWrite(RelayOffPin, HIGH);
-    }
-  } else {
-    digitalWrite(RelayPin, RelayState);
-  }
-
-  setLastRelayState(RelayState);
-
-  if (transmitState) {
-    if (GlobalConfig.BackendType == BackendType_HomeMatic) setStateCUxD(HomeMaticConfig.ChannelName + ".SET_STATE", String(RelayState));
-    if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + "=" + String(RelayState));
-  }
-
-  switchLED((RelayState ? On : Off));
-
-  if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
-    LastHlwCollectMillis = millis();
-    LastHlwMeasureMillis = millis();
-  }
-}
-
-bool getRelayState() {
-  if (GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker)
-    return (digitalRead(RelayPin) == RELAYSTATE_OFF);
-  else
-    return (digitalRead(RelayPin) == RELAYSTATE_ON);
-}
-
-void toggleRelay(bool transmitState) {
-  TimerSeconds = 0;
-  if (getRelayState() == RELAYSTATE_OFF) {
-    switchRelay(RELAYSTATE_ON, transmitState);
-  } else  {
-    switchRelay(RELAYSTATE_OFF, transmitState);
-  }
-}
-
-void switchLED(bool State) {
-  if ((GlobalConfig.SonoffModel == SonoffModel_Switch || GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker) && GlobalConfig.LEDDisabled) {
-    digitalWrite(LEDPin, Off);
-  } else {
-    digitalWrite(LEDPin, State);
-  }
-}
-
-void blinkLED(int count) {
-  byte oldState = digitalRead(LEDPin);
-  delay(100);
-  for (int i = 0; i < count; i++) {
-    switchLED(!oldState);
-    delay(100);
-    switchLED(oldState);
-    delay(100);
-  }
-  delay(200);
-}
-
-String IpAddress2String(const IPAddress& ipAddress) {
-  return String(ipAddress[0]) + String(".") + \
-         String(ipAddress[1]) + String(".") + \
-         String(ipAddress[2]) + String(".") + \
-         String(ipAddress[3]);
-}
