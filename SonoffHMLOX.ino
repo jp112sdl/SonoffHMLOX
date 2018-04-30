@@ -31,7 +31,7 @@ const String FIRMWARE_VERSION = "1.0.23";
 #define ObiLEDPinSwitch        4
 #define ObiSwitchPin          14
 
-#define SwitchPin              0
+#define SonoffSwitchPin        0
 #define SwitchGPIOPin14       14
 
 #define LEDPinSwitch          13
@@ -137,6 +137,7 @@ bool WiFiConnected = false;
 bool LastSwitchGPIOPin14State = HIGH;
 bool CurrentSwitchGPIO14State = HIGH;
 byte LEDPin = 13;
+byte SwitchPin = 0;
 byte On = 1;
 byte Off = 0;
 unsigned long LastMillisKeyPress = 0;
@@ -211,7 +212,8 @@ void setup() {
   pinMode(LEDPinPow,       OUTPUT);
   pinMode(RelayPin,        OUTPUT);
   pinMode(ObiLEDPinSwitch, OUTPUT);
-  pinMode(SwitchPin,       INPUT_PULLUP);
+  pinMode(SonoffSwitchPin, INPUT_PULLUP);
+  pinMode(ObiSwitchPin,    INPUT_PULLUP);
 
   Serial.println(F("Config-Modus durch bootConfigMode aktivieren? "));
   if (SPIFFS.begin()) {
@@ -231,7 +233,7 @@ void setup() {
   if (!startWifiManager) {
     Serial.println(F("Config-Modus mit Taster aktivieren?"));
     for (int i = 0; i < 20; i++) {
-      if (digitalRead(SwitchPin) == LOW) {
+      if (digitalRead(SwitchPin) == LOW || digitalRead(ObiSwitchPin) == LOW) {
         startWifiManager = true;
         break;
       }
@@ -264,6 +266,7 @@ void setup() {
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
       DEBUG("\nSonoff Modell = Switch / S20");
+      SwitchPin = SonoffSwitchPin;
       LEDPin = LEDPinSwitch;
       On = LOW;
       Off = HIGH;
@@ -271,6 +274,7 @@ void setup() {
       break;
     case SonoffModel_Pow:
       DEBUG("\nSonoff Modell = POW");
+      SwitchPin = SonoffSwitchPin;
       LEDPin = LEDPinPow;
       On = HIGH;
       Off = LOW;
@@ -279,6 +283,7 @@ void setup() {
       break;
     case SonoffModel_TouchAsSender:
       DEBUG("\nSonoff Modell = Touch as Sender");
+      SwitchPin = SonoffSwitchPin;
       LEDPin = LEDPinSwitch;
       On = LOW;
       Off = HIGH;
@@ -288,6 +293,7 @@ void setup() {
       DEBUG("\nSonoff Modell = Obi Zwischenstecker");
       LEDPin = ObiLEDPinSwitch;
       pinMode(ObiRelayOffPin,  OUTPUT);
+      SwitchPin = ObiSwitchPin;
       On = HIGH;
       Off = LOW;
       GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
@@ -295,6 +301,7 @@ void setup() {
   }
 
   pinMode(LEDPin, OUTPUT);
+  pinMode(SwitchPin, INPUT_PULLUP);
 
   initWebServerHandler();
 
