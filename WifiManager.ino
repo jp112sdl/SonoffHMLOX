@@ -28,6 +28,8 @@ bool doWifiConnect() {
       Serial.print(".");
       digitalWrite(LEDPinSwitch, (!(digitalRead(LEDPinSwitch))));
       digitalWrite(LEDPinPow, (!(digitalRead(LEDPinPow))));
+      digitalWrite(LEDPinObi, (!(digitalRead(LEDPinObi))));
+
       if (waitCounter == 30) {
         return false;
       }
@@ -42,6 +44,7 @@ bool doWifiConnect() {
     wifiManager.setDebugOutput(wifiManagerDebugOutput);
     digitalWrite(LEDPinSwitch, LOW);
     digitalWrite(LEDPinPow, HIGH);
+    digitalWrite(LEDPinObi, HIGH);
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
     WiFiManagerParameter custom_ccuip("ccu", "IP der CCU2", GlobalConfig.ccuIP, IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
@@ -83,16 +86,19 @@ bool doWifiConnect() {
     String model = "";
     switch (GlobalConfig.SonoffModel) {
       case SonoffModel_Switch:
-        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option><option value='3'>Obi Zwischenstecker</option>");
         break;
       case SonoffModel_Pow:
-        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option><option value='2'>Touch als Sender</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option selected value='1'>POW</option><option value='2'>Touch als Sender</option><option value='3'>Obi Zwischenstecker</option>");
         break;
       case SonoffModel_TouchAsSender:
-        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option selected value='2'>Touch als Sender</option>");
+        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option selected value='2'>Touch als Sender</option><option value='3'>Obi Zwischenstecker</option>");
+        break;
+      case SonoffModel_ObiZwischenstecker:
+        model = F("<option value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option><option selected value='3'>Obi Zwischenstecker</option>");
         break;
       default:
-        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option>");
+        model = F("<option selected value='0'>Switch/Touch/S20</option><option value='1'>POW</option><option value='2'>Touch als Sender</option><option value='3'>Obi Zwischenstecker</option>");
         break;
     }
     WiFiManagerParameter custom_sonoffmodel("sonoffmodel", "Sonoff Modell", "", 8, 2, model.c_str());
