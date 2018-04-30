@@ -28,7 +28,7 @@ bool doWifiConnect() {
       Serial.print(".");
       digitalWrite(LEDPinSwitch, (!(digitalRead(LEDPinSwitch))));
       digitalWrite(LEDPinPow, (!(digitalRead(LEDPinPow))));
-      digitalWrite(ObiLEDPinSwitch, (!(digitalRead(ObiLEDPinSwitch))));
+      digitalWrite(LEDPinObi, (!(digitalRead(LEDPinObi))));
 
       if (waitCounter == 30) {
         return false;
@@ -44,7 +44,7 @@ bool doWifiConnect() {
     wifiManager.setDebugOutput(wifiManagerDebugOutput);
     digitalWrite(LEDPinSwitch, LOW);
     digitalWrite(LEDPinPow, HIGH);
-    digitalWrite(ObiLEDPinSwitch, HIGH);
+    digitalWrite(LEDPinObi, HIGH);
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
     WiFiManagerParameter custom_ccuip("ccu", "IP der CCU2", GlobalConfig.ccuIP, IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
