@@ -27,14 +27,19 @@ const String FIRMWARE_VERSION = "1.0.23";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
+#define ObiRelayOffPin         5
+#define ObiLEDPinSwitch        4
+#define ObiSwitchPin          14
+
+#define SwitchPin              0
+#define SwitchGPIOPin14       14
+
 #define LEDPinSwitch          13
+#define RelayPin              12
 #define LEDPinPow             15
 #define SEL_PIN                5
 #define CF1_PIN               13
 #define CF_PIN                14
-#define RelayPin              12
-#define SwitchPin              0
-#define SwitchGPIOPin14       14
 #define MillisKeyBounce      100  //Millisekunden zwischen 2xtasten
 #define ConfigPortalTimeout  180  //Timeout (Sekunden) des AccessPoint-Modus
 #define HTTPTimeOut         1500  //Timeout (Millisekunden) für http requests
@@ -58,7 +63,8 @@ enum BackendTypes_e {
 enum SonoffModel_e {
   SonoffModel_Switch,
   SonoffModel_Pow,
-  SonoffModel_TouchAsSender
+  SonoffModel_TouchAsSender,
+  SonoffModel_ObiZwischenstecker
 };
 
 enum RelayStates_e {
@@ -201,10 +207,11 @@ void ICACHE_RAM_ATTR hlw8012_cf_interrupt() {
 void setup() {
   Serial.begin(115200);
   Serial.println("\nSonoff " + WiFi.macAddress() + " startet... (FW: " + FIRMWARE_VERSION + ")");
-  pinMode(LEDPinSwitch, OUTPUT);
-  pinMode(LEDPinPow,    OUTPUT);
-  pinMode(RelayPin,     OUTPUT);
-  pinMode(SwitchPin,    INPUT_PULLUP);
+  pinMode(LEDPinSwitch,    OUTPUT);
+  pinMode(LEDPinPow,       OUTPUT);
+  pinMode(RelayPin,        OUTPUT);
+  pinMode(ObiLEDPinSwitch, OUTPUT);
+  pinMode(SwitchPin,       INPUT_PULLUP);
 
   Serial.println(F("Config-Modus durch bootConfigMode aktivieren? "));
   if (SPIFFS.begin()) {
@@ -229,9 +236,11 @@ void setup() {
         break;
       }
       digitalWrite(LEDPinSwitch, HIGH);
+      digitalWrite(ObiLEDPinSwitch, LOW);
       digitalWrite(LEDPinPow, LOW);
       delay(100);
       digitalWrite(LEDPinSwitch, LOW);
+      digitalWrite(ObiLEDPinSwitch, HIGH);
       digitalWrite(LEDPinPow, HIGH);
       delay(100);
     }
@@ -255,7 +264,7 @@ void setup() {
   switch (GlobalConfig.SonoffModel) {
     case SonoffModel_Switch:
       DEBUG("\nSonoff Modell = Switch / S20");
-      LEDPin = 13;
+      LEDPin = LEDPinSwitch;
       On = LOW;
       Off = HIGH;
       pinMode(SwitchGPIOPin14, INPUT_PULLUP);
@@ -270,9 +279,17 @@ void setup() {
       break;
     case SonoffModel_TouchAsSender:
       DEBUG("\nSonoff Modell = Touch as Sender");
-      LEDPin = 13;
+      LEDPin = LEDPinSwitch;
       On = LOW;
       Off = HIGH;
+      GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
+      break;
+    case SonoffModel_ObiZwischenstecker:
+      DEBUG("\nSonoff Modell = Obi Zwischenstecker");
+      LEDPin = ObiLEDPinSwitch;
+      pinMode(ObiRelayOffPin,  OUTPUT);
+      On = HIGH;
+      Off = LOW;
       GlobalConfig.GPIO14Mode = GPIO14Mode_OFF;
       break;
   }
@@ -468,7 +485,24 @@ void switchRelay(bool toState, bool transmitState) {
     TimerSeconds = 0;
   }
 
-  digitalWrite(RelayPin, RelayState);
+  if (GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker) {
+    if (RelayState == RELAYSTATE_ON) {
+      DEBUG("ObiModus! - nutze RelayOnPin", "switchRelay()", _slInformational);
+      digitalWrite(RelayPin, LOW);
+      digitalWrite(ObiRelayOffPin, HIGH);
+      //delay(250);
+      //digitalWrite(RelayOnPin, HIGH);
+    } else {
+      DEBUG("ObiModus! - nutze RelayOffPin", "switchRelay()", _slInformational);
+      digitalWrite(ObiRelayOffPin, LOW);
+      digitalWrite(RelayPin, HIGH);
+      //delay(250);
+      //digitalWrite(RelayOffPin, HIGH);
+    }
+  } else {
+    digitalWrite(RelayPin, RelayState);
+  }
+
   setLastRelayState(RelayState);
 
   if (transmitState) {
@@ -485,12 +519,15 @@ void switchRelay(bool toState, bool transmitState) {
 }
 
 bool getRelayState() {
-  return (digitalRead(RelayPin) == RELAYSTATE_ON);
+  if (GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker)
+    return (digitalRead(RelayPin) == RELAYSTATE_OFF);
+  else
+    return (digitalRead(RelayPin) == RELAYSTATE_ON);
 }
 
 void toggleRelay(bool transmitState) {
   TimerSeconds = 0;
-  if (digitalRead(RelayPin) == LOW) {
+  if (getRelayState() == RELAYSTATE_OFF) {
     switchRelay(RELAYSTATE_ON, transmitState);
   } else  {
     switchRelay(RELAYSTATE_OFF, transmitState);
@@ -498,7 +535,7 @@ void toggleRelay(bool transmitState) {
 }
 
 void switchLED(bool State) {
-  if ((GlobalConfig.SonoffModel == SonoffModel_Switch || GlobalConfig.SonoffModel == SonoffModel_TouchAsSender) && GlobalConfig.LEDDisabled) {
+  if ((GlobalConfig.SonoffModel == SonoffModel_Switch || GlobalConfig.SonoffModel == SonoffModel_TouchAsSender || GlobalConfig.SonoffModel == SonoffModel_ObiZwischenstecker) && GlobalConfig.LEDDisabled) {
     digitalWrite(LEDPin, Off);
   } else {
     digitalWrite(LEDPin, State);

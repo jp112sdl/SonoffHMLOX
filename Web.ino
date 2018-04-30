@@ -201,7 +201,7 @@ void defaultHtml() {
   page += FPSTR(HTTP_CURRENT_STATE_LABEL);
   page.replace("{v}", GlobalConfig.DeviceName);
 
-  page.replace("{ls}", ((digitalRead(RelayPin) == HIGH) ? "AN" : "AUS"));
+  page.replace("{ls}", ((getRelayState() == RELAYSTATE_ON) ? "AN" : "AUS"));
 
   page += FPSTR(HTTP_ONOFF_BUTTONS);
 
@@ -280,7 +280,7 @@ void configHtml() {
         GlobalConfig.GPIO14asSender = (String(WebServer.arg(i)).toInt() == 1);
     }
     if (sc) {
-      setLastRelayState(digitalRead(RelayPin));
+      setLastRelayState(getRelayState() == RELAYSTATE_ON);
       saveSuccess = saveSystemConfig();
       if (GlobalConfig.BackendType == BackendType_HomeMatic) {
         String devName = getStateCUxD(String(GlobalConfig.DeviceName), "Address") ;
@@ -407,7 +407,7 @@ void sendDefaultWebCmdReply() {
 }
 
 String createReplyString() {
-  return "{\"state\": " + String(digitalRead(RelayPin)) + ", \"timer\": " + String(TimerSeconds) + ", \"resttimer\": " + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + ", \"fw\": \"" + FIRMWARE_VERSION + "\"}";
+  return "{\"state\": " + String(getRelayState() == RELAYSTATE_ON) + ", \"timer\": " + String(TimerSeconds) + ", \"resttimer\": " + String((TimerSeconds > 0) ? (TimerSeconds - (millis() - TimerStartMillis) / 1000) : 0) + ", \"fw\": \"" + FIRMWARE_VERSION + "\"}";
 }
 
 void versionHtml() {
