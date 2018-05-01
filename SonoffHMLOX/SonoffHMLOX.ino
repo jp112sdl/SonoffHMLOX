@@ -230,10 +230,13 @@ void setup() {
     Serial.println(F("-> Nein, SPIFFS mount fail!"));
   }
 
+  if (!loadSystemConfig()) startWifiManager = true;
+  //Ab hier ist die Config geladen und alle Variablen sind mit deren Werten belegt!
+
   if (!startWifiManager) {
     Serial.println(F("Config-Modus mit Taster aktivieren?"));
     for (int i = 0; i < 20; i++) {
-      if (digitalRead(SwitchPin) == LOW || digitalRead(ObiSwitchPin) == LOW) {
+      if (digitalRead(SwitchPin) == LOW || (GlobalConfig.SonoffModel != SonoffModel_Pow && digitalRead(ObiSwitchPin) == LOW)) {
         startWifiManager = true;
         break;
       }
@@ -248,9 +251,6 @@ void setup() {
     }
     Serial.println("Config-Modus " + String(((startWifiManager) ? "" : "nicht ")) + "aktiviert.");
   }
-
-  if (!loadSystemConfig()) startWifiManager = true;
-  //Ab hier ist die Config geladen und alle Variablen sind mit deren Werten belegt!
 
   if (doWifiConnect()) {
     Serial.println(F("\nWLAN erfolgreich verbunden!"));
@@ -380,7 +380,7 @@ void loop() {
     //eingehende HTTP Anfragen abarbeiten
     WebServer.handleClient();
 
-    //GPIO14 am Sonoff Switch 
+    //GPIO14 am Sonoff Switch
     gpio14Handling();
 
     //Tasterbedienung am Sonoff abarbeiten
