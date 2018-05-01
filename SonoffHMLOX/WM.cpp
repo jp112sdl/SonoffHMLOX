@@ -91,6 +91,7 @@ void WiFiManager::setupConfigPortal() {
   // setup dns and web servers
   dnsServer.reset(new DNSServer());
   server.reset(new ESP8266WebServer(80));
+  _configPortalStart = millis();
   dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
   DEBUG_WM("dns server started with ip: ");
   DEBUG_WM(WiFi.softAPIP());
@@ -112,7 +113,7 @@ void WiFiManager::setupConfigPortal() {
 }
 
 boolean WiFiManager::autoConnect() {
-  String ssid = "ESP" + String(ESP.getChipId());
+  String ssid = "Sonoff-" + String(ESP.getChipId());
   return autoConnect(ssid.c_str(), NULL);
 }
 
@@ -143,16 +144,20 @@ boolean WiFiManager::configPortalHasTimeout() {
 }
 
 boolean WiFiManager::startConfigPortal() {
-  String ssid = "ESP" + String(ESP.getChipId());
+  String ssid = "Sonoff-" + String(ESP.getChipId());
   return startConfigPortal(ssid.c_str());
 }
 
 boolean  WiFiManager::startConfigPortal(char const *apName) {
   //setup AP
+  DEBUG_WM(F("Configuring access point... "));
+  DEBUG_WM(_apName);
+  String ssid = "Sonoff-" + String(WiFi.macAddress());
+  _apName = ssid.c_str();
+  WiFi.softAP(ssid.c_str());
   WiFi.mode(WIFI_AP);
   DEBUG_WM("SET AP");
 
-  _apName = apName;
 
   //notify we entered AP mode
   if ( _apcallback != NULL) {
