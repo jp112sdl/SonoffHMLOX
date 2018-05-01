@@ -153,6 +153,7 @@ boolean  WiFiManager::startConfigPortal(char const *apName) {
   DEBUG_WM(F("Configuring access point... "));
   DEBUG_WM(_apName);
   String ssid = "Sonoff-" + String(WiFi.macAddress());
+  delay(100);
   _apName = ssid.c_str();
   WiFi.softAP(ssid.c_str());
   WiFi.mode(WIFI_AP);
