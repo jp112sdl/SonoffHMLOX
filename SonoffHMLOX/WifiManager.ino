@@ -150,8 +150,6 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_netmask);
     wifiManager.addParameter(&custom_gw);
 
-    String Hostname = "Sonoff-" + WiFi.macAddress();
-
     wifiManager.setConfigPortalTimeout(ConfigPortalTimeout);
 
     if (startWifiManager == true) {
@@ -159,7 +157,7 @@ bool doWifiConnect() {
         wifiManager.resetSettings();
       }
       else {
-        if (!wifiManager.startConfigPortal(Hostname.c_str())) {
+        if (!wifiManager.startConfigPortal()) {
           DEBUG(F("WM: failed to connect and hit timeout"));
           delay(500);
           ESP.restart();
@@ -169,7 +167,7 @@ bool doWifiConnect() {
 
     wifiManager.setSTAStaticIPConfig(IPAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]), IPAddress(gwBytes[0], gwBytes[1], gwBytes[2], gwBytes[3]), IPAddress(netmaskBytes[0], netmaskBytes[1], netmaskBytes[2], netmaskBytes[3]));
 
-    wifiManager.autoConnect(Hostname.c_str());
+    wifiManager.autoConnect();
 
     DEBUG(F("Wifi Connected"));
     DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
