@@ -546,23 +546,23 @@ void WiFiManager::handleWifiSave() {
     DEBUG_WM(value);
   }
 
-  if (server->arg("ip") != "") {
+  if (server->arg("custom_ip") != "") {
     DEBUG_WM(F("static ip"));
-    DEBUG_WM(server->arg("ip"));
-    //_sta_static_ip.fromString(server->arg("ip"));
-    String ip = server->arg("ip");
+    DEBUG_WM(server->arg("custom_ip"));
+    _sta_static_ip.fromString(server->arg("custom_ip"));
+    String ip = server->arg("custom_ip");
     optionalIPFromString(&_sta_static_ip, ip.c_str());
   }
-  if (server->arg("gw") != "") {
+  if (server->arg("custom_gw") != "") {
     DEBUG_WM(F("static gateway"));
-    DEBUG_WM(server->arg("gw"));
-    String gw = server->arg("gw");
+    DEBUG_WM(server->arg("custom_gw"));
+    String gw = server->arg("custom_gw");
     optionalIPFromString(&_sta_static_gw, gw.c_str());
   }
-  if (server->arg("sn") != "") {
+  if (server->arg("custom_netmask") != "") {
     DEBUG_WM(F("static netmask"));
-    DEBUG_WM(server->arg("sn"));
-    String sn = server->arg("sn");
+    DEBUG_WM(server->arg("custom_netmask"));
+    String sn = server->arg("custom_netmask");
     optionalIPFromString(&_sta_static_sn, sn.c_str());
   }
 
