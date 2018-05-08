@@ -4,7 +4,6 @@
   Flash Frequency: 40 MHz
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
-  esp8266/arduino core 2.4.x - working 16.02.5328a8b
 */
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -23,7 +22,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.24";
+const String FIRMWARE_VERSION = "1.0.25";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
