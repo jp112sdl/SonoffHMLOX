@@ -14,12 +14,12 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
       
     qsa = document.querySelectorAll('[id$=_pow]'); 
     qsa.forEach(function(e) { 
-      e.style.display = 'run-in'; 
+      e.style.display = 'block'; 
       });
        
     qsa = document.querySelectorAll('[id$=_switch]'); 
     qsa.forEach(function(e) { 
-      e.style.display = 'run-in'; 
+      e.style.display = 'block'; 
       }); 
         
     if (backendtype) { 
@@ -49,6 +49,10 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
           qsa.forEach(function(e) { e.style.display = 'none'; }); 
           break; 
         case 2: 
+          qsa = document.querySelectorAll('[id$=_pow]'); 
+          qsa.forEach(function(e) { e.style.display = 'none'; }); 
+          break; 
+        case 3: 
           qsa = document.querySelectorAll('[id$=_pow]'); 
           qsa.forEach(function(e) { e.style.display = 'none'; }); 
           break; 
