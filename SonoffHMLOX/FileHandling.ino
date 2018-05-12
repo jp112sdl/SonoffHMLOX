@@ -150,7 +150,7 @@ bool saveSystemConfig() {
 
 void setLastRelayState(bool state) {
   GlobalConfig.lastRelayState = state;
-  if (GlobalConfig.restoreOldRelayState) {
+  if (GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) {
     if (SPIFFS.begin()) {
       DEBUG(F("setLastState mounted file system"), "setLastState()", _slInformational);
       //SPIFFS.remove("/" + lastStateFilename);
@@ -166,7 +166,7 @@ void setLastRelayState(bool state) {
 }
 
 bool getLastRelayState() {
-  if (GlobalConfig.restoreOldRelayState) {
+  if (GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) {
     if (SPIFFS.begin()) {
       DEBUG(F("getLastState mounted file system"), "getLastState()", _slInformational);
       if (SPIFFS.exists("/" + lastRelayStateFilename)) {

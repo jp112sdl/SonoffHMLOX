@@ -10,7 +10,8 @@ const char HTTP_CALIB_BUTTON[] PROGMEM = "<div></div><div><input class='lnkbtn' 
 const char HTTP_CALIB_INPUT[] PROGMEM = "<div><table><tr><td>Last (W):</td><td align='right'><input class='i' type='text' id='cwatt' name='cwatt' placeholder='Watt' pattern='[0-9]{1,4}'></td></tr><tr><td>Spannung (V):</td><td align='right'><input class='i' type='text' id='cvolt' name='cvolt' placeholder='Volt' pattern='[0-9]{1,3}' value='230'></td></tr></table></div>";
 const char HTTP_DOCALIB_BUTTON[] PROGMEM = "<div><button name='doCalibrate' value='1' type='submit'>Kalibrieren</button></div>";
 const char HTTP_UNDOCALIB_BUTTON[] PROGMEM = "<div><button name='undoCalibrate' value='1' type='submit'>Kalib. Reset</button></div>";
-const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input type='text' id='ccuip' name='ccuip' pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$' maxlength=16 placeholder='{st}' value='{ccuip}'></div><div><label>Ger&auml;tename:</label></div><div><input type='text' id='devicename' name='devicename' pattern='[A-Za-z0-9_ -]+' placeholder='Ger&auml;tename' value='{dn}'></div><div><label for='rstate' class='lcb' title='Stellt den Schaltzustand nach einer Stromunterbrechung wiederher'><input class='cb' id='rstate' type='checkbox' name='rstate' {rs} value=1> {remanenz}</label></div>";
+const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input type='text' id='ccuip' name='ccuip' pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$' maxlength=16 placeholder='{st}' value='{ccuip}'></div><div><label>Ger&auml;tename:</label></div><div><input type='text' id='devicename' name='devicename' pattern='[A-Za-z0-9_ -]+' placeholder='Ger&auml;tename' value='{dn}'></div>";
+const char HTTP_CONF_ADD_RESTORESTATE[] PROGMEM = "<div><label for='restorestate'>Schaltzustand bei Boot</label><span class='ckb cob'><select id='restorestate' name='restorestate'><option {restore_off} value='0'>Aus</option><option {restore_last} value='1'>letzter Zustand</option><option {restore_on} value='2'>Ein</option></select></span></div>";
 const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<hr /><div><label>Nur Sonoff Switch:</label><div id='div_gpio14mode'></div><label for='gpio14mode'>GPIO14 Mode</label><span class='ckb cob'><select id='gpio14mode' name='gpio14mode'><option {gpio14mode_off} value='0'>nicht verwendet</option><option {gpio14mode_key} value='1'>Taster</option><option {gpio14mode_switch_abs} value='2'>Schalter (absolut)</option><option {gpio14mode_switch_tog} value='3'>Schalter (toggle)</option></select></span></div><div><label class='lcb' for='gpio14assender'><input id='gpio14assender' class='cb' type='checkbox' name='gpio14assender' {gpio14assender} value=1> GPIO14 nur Sender</label><hr /></div>";
 const char HTTP_CONF_ADD_ALL[] PROGMEM = "<div><label class='lcb' for='leddisabled'><input id='leddisabled' class='cb' type='checkbox' name='leddisabled' {le} value=1> LED deaktiviert</label></div>";
 const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
@@ -252,7 +253,7 @@ void configHtml() {
   bool saveSuccess = false;
   bool showHMDevError = false;
   if (WebServer.args() > 0) {
-    GlobalConfig.restoreOldRelayState = false;
+    GlobalConfig.restoreOldRelayState = RelayStateOnBoot_OFF;
     GlobalConfig.LEDDisabled = false;
     GlobalConfig.GPIO14asSender = false;
     for (int i = 0; i < WebServer.args(); i++) {
@@ -270,8 +271,8 @@ void configHtml() {
         strcpy(GlobalConfig.DeviceName, WebServer.arg(i).c_str());
       if (WebServer.argName(i) == "lox_udpport")
         strcpy(LoxoneConfig.UDPPort, WebServer.arg(i).c_str());
-      if (WebServer.argName(i) == "rstate")
-        GlobalConfig.restoreOldRelayState = (String(WebServer.arg(i)).toInt() == 1);
+      if (WebServer.argName(i) == "restorestate")
+        GlobalConfig.restoreOldRelayState = String(WebServer.arg(i)).toInt();
       if (WebServer.argName(i) == "leddisabled")
         GlobalConfig.LEDDisabled = (String(WebServer.arg(i)).toInt() == 1);
       if (WebServer.argName(i) == "gpio14mode")
@@ -307,6 +308,25 @@ void configHtml() {
   page += F("<form method='post' action='config'>");
   page += FPSTR(HTTP_TITLE_LABEL);
   page += FPSTR(HTTP_CONF);
+
+  page += FPSTR(HTTP_CONF_ADD_RESTORESTATE);
+  switch (GlobalConfig.restoreOldRelayState) {
+    case RelayStateOnBoot_OFF:
+      page.replace("{restore_off}", "selected");
+      page.replace("{restore_last}", "");
+      page.replace("{restore_on}", "");
+      break;
+    case RelayStateOnBoot_LAST:
+      page.replace("{restore_off}", "");
+      page.replace("{restore_last}", "selected");
+      page.replace("{restore_on}", "");
+      break;
+    case RelayStateOnBoot_ON:
+      page.replace("{restore_off}", "");
+      page.replace("{restore_last}", "");
+      page.replace("{restore_on}", "selected");
+      break;
+  }
 
   if (GlobalConfig.SonoffModel == SonoffModel_Switch) {
     page += FPSTR(HTTP_CONF_ADD_SWITCH);
@@ -366,7 +386,6 @@ void configHtml() {
     page.replace("{remanenz}", "Remanenzeingang");
   }
 
-  page.replace("{rs}", ((GlobalConfig.restoreOldRelayState) ? "checked" : ""));
   page.replace("{le}", ((GlobalConfig.LEDDisabled) ? "checked" : ""));
   page.replace("{dn}", GlobalConfig.DeviceName);
   page.replace("{ccuip}", GlobalConfig.ccuIP);

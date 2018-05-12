@@ -22,7 +22,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.25";
+const String FIRMWARE_VERSION = "1.0.26";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -83,10 +83,16 @@ enum GPIO14Modes_e {
   GPIO14Mode_SWITCH_TOGGLE
 };
 
+enum RelayStateOnBoot_e {
+  RelayStateOnBoot_OFF,
+  RelayStateOnBoot_LAST,
+  RelayStateOnBoot_ON
+};
+
 struct globalconfig_t {
   char ccuIP[IPSIZE]   = "";
   char DeviceName[VARIABLESIZE] = "";
-  bool restoreOldRelayState = false;
+  uint8_t restoreOldRelayState = RelayStateOnBoot_OFF;
   bool lastRelayState = false;
   int  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
@@ -312,7 +318,7 @@ void setup() {
   }
 
   GlobalConfig.lastRelayState = getLastRelayState();
-  if ((GlobalConfig.restoreOldRelayState) && GlobalConfig.lastRelayState == true) {
+  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || RelayStateOnBoot_ON){
     switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
   } else {
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);

@@ -58,9 +58,22 @@ bool doWifiConnect() {
     WiFiManagerParameter custom_loxudpport("loxudpport", "Loxone UDP Port", LoxoneConfig.UDPPort, 10, 0, "pattern='[0-9]{1,5}'");
     WiFiManagerParameter custom_sonoffname("sonoff", "Sonoff Ger&auml;tename", GlobalConfig.DeviceName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
 
-    char*chrRestoreOldState = "0";
-    if (GlobalConfig.restoreOldRelayState) chrRestoreOldState =  "1" ;
-    WiFiManagerParameter custom_cbrestorestate("restorestate", "Schaltzustand wiederherstellen: ", chrRestoreOldState, 8, 1);
+    String strRestoreOldState = "";
+    switch (GlobalConfig.restoreOldRelayState) {
+      case RelayStateOnBoot_OFF:
+        strRestoreOldState = F("<option selected value='0'>Aus</option><option value='1'>letzter Zustand</option><option value='2'>Ein</option>");
+        break;
+      case RelayStateOnBoot_LAST:
+        strRestoreOldState = F("<option value='0'>Aus</option><option selected value='1'>letzter Zustand</option><option value='2'>Ein</option>");
+        break;
+      case RelayStateOnBoot_ON:
+        strRestoreOldState = F("<option value='0'>Aus</option><option value='1'>letzter Zustand</option><option selected value='2'>Ein</option>");
+        break;
+      default:
+        strRestoreOldState = F("<option selected value='0'>Aus</option><option value='1'>letzter Zustand</option><option value='2'>Ein</option>");
+        break;
+    }
+    WiFiManagerParameter custom_restorestate("restorestate", "Schaltzustand bei Boot", "", 8, 2, strRestoreOldState.c_str());
 
     char*chrLEDDisabled = "0";
     if (GlobalConfig.LEDDisabled) chrLEDDisabled =  "1" ;
@@ -145,7 +158,7 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_powervariablename);
     wifiManager.addParameter(&custom_ecvariablename);
     wifiManager.addParameter(&custom_powermeasureinterval);
-    wifiManager.addParameter(&custom_cbrestorestate);
+    wifiManager.addParameter(&custom_restorestate);
     wifiManager.addParameter(&custom_cbleddisabled);
     wifiManager.addParameter(&custom_gpio14mode);
     wifiManager.addParameter(&custom_gpio14assender);
@@ -189,7 +202,7 @@ bool doWifiConnect() {
         strcpy(SonoffNetConfig.gw,      "0.0.0.0");
       }
 
-      GlobalConfig.restoreOldRelayState = (atoi(custom_cbrestorestate.getValue()) == 1);
+      GlobalConfig.restoreOldRelayState = (atoi(custom_restorestate.getValue()));
       GlobalConfig.LEDDisabled = (atoi(custom_cbleddisabled.getValue()) == 1);
       GlobalConfig.GPIO14asSender = (atoi(custom_gpio14assender.getValue()) == 1);
       GlobalConfig.BackendType = (atoi(custom_backendtype.getValue()));
