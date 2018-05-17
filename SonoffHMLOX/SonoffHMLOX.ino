@@ -22,7 +22,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.26";
+const String FIRMWARE_VERSION = "1.0.27";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -318,7 +318,7 @@ void setup() {
   }
 
   GlobalConfig.lastRelayState = getLastRelayState();
-  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || RelayStateOnBoot_ON){
+  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || GlobalConfig.restoreOldRelayState == RelayStateOnBoot_ON){
     switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
   } else {
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
