@@ -32,11 +32,16 @@ bool loadSystemConfig() {
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        DynamicJsonDocument doc;
+        DeserializationError error = deserializeJson(doc, buf.get());
+        if (error) {
+          DEBUG(F("loadSystemConfig JSON DeserializationError"), "loadSystemConfig()", _slInformational);
+          return false;
+        }
+        JsonObject& json = doc.as<JsonObject>();
         DEBUG("Content of JSON Config-File: /" + configJsonFile, "loadSystemConfig()", _slInformational);
 #ifdef SERIALDEBUG
-        json.printTo(Serial);
+        serializeJson(doc, Serial);
         Serial.println();
 #endif
         if (json.success()) {
@@ -104,8 +109,8 @@ bool loadSystemConfig() {
 bool saveSystemConfig() {
   SPIFFS.begin();
   DEBUG(F("saving config"), "saveSystemConfig()", _slInformational);
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  DynamicJsonDocument doc;
+  JsonObject& json = doc.to<JsonObject>();
   json[JSONCONFIG_IP] = SonoffNetConfig.ip;
   json[JSONCONFIG_NETMASK] = SonoffNetConfig.netmask;
   json[JSONCONFIG_GW] = SonoffNetConfig.gw;
@@ -139,10 +144,10 @@ bool saveSystemConfig() {
   }
 
 #ifdef SERIALDEBUG
-  json.printTo(Serial);
+  serializeJson(doc, Serial);
   Serial.println();
 #endif
-  json.printTo(configFile);
+  serializeJson(doc, configFile);
   configFile.close();
   SPIFFS.end();
   return true;
