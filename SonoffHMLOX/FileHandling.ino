@@ -38,60 +38,55 @@ bool loadSystemConfig() {
           DEBUG(F("loadSystemConfig JSON DeserializationError"), "loadSystemConfig()", _slInformational);
           return false;
         }
-        JsonObject& json = doc.as<JsonObject>();
+        JsonObject json = doc.as<JsonObject>();
         DEBUG("Content of JSON Config-File: /" + configJsonFile, "loadSystemConfig()", _slInformational);
 #ifdef SERIALDEBUG
         serializeJson(doc, Serial);
         Serial.println();
 #endif
-        if (json.success()) {
-          DEBUG("\nJSON OK", "loadSystemConfig()", _slInformational);
-          ((json[JSONCONFIG_IP]).as<String>()).toCharArray(SonoffNetConfig.ip, IPSIZE);
-          ((json[JSONCONFIG_NETMASK]).as<String>()).toCharArray(SonoffNetConfig.netmask, IPSIZE);
-          ((json[JSONCONFIG_GW]).as<String>()).toCharArray(SonoffNetConfig.gw, IPSIZE);
-          ((json[JSONCONFIG_CCUIP]).as<String>()).toCharArray(GlobalConfig.ccuIP, IPSIZE);
-          ((json[JSONCONFIG_SONOFF]).as<String>()).toCharArray(GlobalConfig.DeviceName, VARIABLESIZE);
+        DEBUG("\nJSON OK", "loadSystemConfig()", _slInformational);
+        ((json[JSONCONFIG_IP]).as<String>()).toCharArray(SonoffNetConfig.ip, IPSIZE);
+        ((json[JSONCONFIG_NETMASK]).as<String>()).toCharArray(SonoffNetConfig.netmask, IPSIZE);
+        ((json[JSONCONFIG_GW]).as<String>()).toCharArray(SonoffNetConfig.gw, IPSIZE);
+        ((json[JSONCONFIG_CCUIP]).as<String>()).toCharArray(GlobalConfig.ccuIP, IPSIZE);
+        ((json[JSONCONFIG_SONOFF]).as<String>()).toCharArray(GlobalConfig.DeviceName, VARIABLESIZE);
 
-          //((json[JSONCONFIG_LOXUSERNAME]).as<String>()).toCharArray(LoxoneConfig.Username, VARIABLESIZE);
-          //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
-          ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
-          ((json[JSONCONFIG_HMPOWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
-          ((json[JSONCONFIG_HMENERGYCOUNTERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE);
-          GlobalConfig.MeasureInterval = json[JSONCONFIG_MEASUREINTERVAL];
-          if (GlobalConfig.MeasureInterval == 0)
-            GlobalConfig.MeasureInterval = 60;
+        //((json[JSONCONFIG_LOXUSERNAME]).as<String>()).toCharArray(LoxoneConfig.Username, VARIABLESIZE);
+        //((json[JSONCONFIG_LOXPASSWORD]).as<String>()).toCharArray(LoxoneConfig.Password, VARIABLESIZE);
+        ((json[JSONCONFIG_LOXUDPPORT]).as<String>()).toCharArray(LoxoneConfig.UDPPort, 10);
+        ((json[JSONCONFIG_HMPOWERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.PowerVariableName, VARIABLESIZE);
+        ((json[JSONCONFIG_HMENERGYCOUNTERVARIABLE]).as<String>()).toCharArray(HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE);
+        GlobalConfig.MeasureInterval = json[JSONCONFIG_MEASUREINTERVAL];
+        if (GlobalConfig.MeasureInterval == 0)
+          GlobalConfig.MeasureInterval = 60;
 
-          GlobalConfig.BackendType = json[JSONCONFIG_BACKENDTYPE];
-          GlobalConfig.GPIO14Mode = json[JSONCFONIG_GPIO14MODE];
-          GlobalConfig.restoreOldRelayState = json[JSONCONFIG_RESTOREOLDSTATE];
-          GlobalConfig.LEDDisabled = json[JSONCONFIG_LEDDISABLED];
-          GlobalConfig.GPIO14asSender = json[JSONCFONIG_GPIO14ASSENDER];
-          GlobalConfig.SonoffModel = json[JSONCONFIG_SONOFFMODEL];
-          GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
+        GlobalConfig.BackendType = json[JSONCONFIG_BACKENDTYPE];
+        GlobalConfig.GPIO14Mode = json[JSONCFONIG_GPIO14MODE];
+        GlobalConfig.restoreOldRelayState = json[JSONCONFIG_RESTOREOLDSTATE];
+        GlobalConfig.LEDDisabled = json[JSONCONFIG_LEDDISABLED];
+        GlobalConfig.GPIO14asSender = json[JSONCFONIG_GPIO14ASSENDER];
+        GlobalConfig.SonoffModel = json[JSONCONFIG_SONOFFMODEL];
+        GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
 
-          if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
-            float fVal = (json[JSONCONFIG_HLW_CURRENTMULTIPLIER]).as<float>();
-            if (fVal > 0.0) {
-              if (HLW8012Calibration.CurrentMultiplier != fVal) {
-                HLW8012Calibration.CurrentMultiplier = fVal;
-              }
-            }
-            fVal = (json[JSONCONFIG_HLW_VOLTAGEMULTIPLIER]).as<float>();
-            if (fVal > 0.0) {
-              if (HLW8012Calibration.VoltageMultiplier != fVal) {
-                HLW8012Calibration.VoltageMultiplier =  fVal;
-              }
-            }
-            fVal = (json[JSONCONFIG_HLW_POWERMULTIPLIER]).as<float>();
-            if (fVal > 0.0) {
-              if (HLW8012Calibration.PowerMultiplier != fVal) {
-                HLW8012Calibration.PowerMultiplier =  fVal;
-              }
+        if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+          float fVal = (json[JSONCONFIG_HLW_CURRENTMULTIPLIER]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.CurrentMultiplier != fVal) {
+              HLW8012Calibration.CurrentMultiplier = fVal;
             }
           }
-
-        } else {
-          DEBUG(F("\nloadSystemConfig ERROR loading config"), "loadSystemConfig()", _slInformational);
+          fVal = (json[JSONCONFIG_HLW_VOLTAGEMULTIPLIER]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.VoltageMultiplier != fVal) {
+              HLW8012Calibration.VoltageMultiplier =  fVal;
+            }
+          }
+          fVal = (json[JSONCONFIG_HLW_POWERMULTIPLIER]).as<float>();
+          if (fVal > 0.0) {
+            if (HLW8012Calibration.PowerMultiplier != fVal) {
+              HLW8012Calibration.PowerMultiplier =  fVal;
+            }
+          }
         }
       }
       return true;
@@ -110,7 +105,7 @@ bool saveSystemConfig() {
   SPIFFS.begin();
   DEBUG(F("saving config"), "saveSystemConfig()", _slInformational);
   DynamicJsonDocument doc;
-  JsonObject& json = doc.to<JsonObject>();
+  JsonObject json = doc.to<JsonObject>();
   json[JSONCONFIG_IP] = SonoffNetConfig.ip;
   json[JSONCONFIG_NETMASK] = SonoffNetConfig.netmask;
   json[JSONCONFIG_GW] = SonoffNetConfig.gw;
