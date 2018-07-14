@@ -116,11 +116,25 @@ void handleHLW8012() {
     DEBUG("[HLW]: " + String(hlw8012value.powerw) + "W, " + String(hlw8012value.voltage) + "V, " + String(hlw8012value.current) + "A, " + String(hlw8012value.powerva) + "VA, Power Factor (%): " + String((int) (100 * hlw8012.getPowerFactor())) + ", ENERGY_COUNTER: " + String(hlw8012value.energy_counter) + "Wh");
 
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
-      if (String(HomeMaticConfig.PowerVariableName) != "") 
+      if (String(HomeMaticConfig.PowerVariableName) != "")
         setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));
-      if (String(HomeMaticConfig.EnergyCounterVariableName) != "") 
-        setStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), String(hlw8012value.energy_counter));      
+      if (String(HomeMaticConfig.EnergyCounterVariableName) != "")
+        setStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), String(hlw8012value.energy_counter));
     }
+  }
+}
+
+float getEnergyCounterValueFromCCU() {
+  if (String(HomeMaticConfig.EnergyCounterVariableName) != "") {
+    String sVal = getStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), "State");
+    DEBUG("getEnergyCounterValueFromCCU() Result: " + sVal);
+    if (sVal == "null") {
+      return 0.0;
+    } else {
+      return sVal.toFloat();
+    }
+  } else {
+    return 0.0;
   }
 }
 
