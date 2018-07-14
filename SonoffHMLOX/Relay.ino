@@ -25,11 +25,14 @@ void switchRelay(bool toState, bool transmitState) {
     if (GlobalConfig.BackendType == BackendType_Loxone) sendLoxoneUDP(String(GlobalConfig.DeviceName) + "=" + String(RelayState));
   }
 
-  switchLED((RelayState ? On : Off));
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     LastHlwCollectMillis = millis();
     LastHlwMeasureMillis = millis();
+  }
+  
+  if (GlobalConfig.SonoffModel != SonoffModel_Pow) {
+    switchLED((RelayState ? On : Off));
   }
 }
 
