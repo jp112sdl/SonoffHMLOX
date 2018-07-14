@@ -301,9 +301,6 @@ void setup() {
   UDPClient.UDP.begin(UDPPORT);
   UDPReady = true;
 
-  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    switchLED(On);
-
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     reloadCUxDAddress(NO_TRANSMITSTATE);
     byte tryCount = 0;
@@ -318,10 +315,15 @@ void setup() {
   }
 
   GlobalConfig.lastRelayState = getLastRelayState();
-  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || GlobalConfig.restoreOldRelayState == RelayStateOnBoot_ON){
+  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || GlobalConfig.restoreOldRelayState == RelayStateOnBoot_ON) {
     switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
   } else {
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
+  }
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+    switchLED(On);
+    hlw8012value.energy_counter = getEnergyCounterValueFromCCU();
   }
 
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
