@@ -27,6 +27,8 @@ void initWebServerHandler() {
   WebServer.on("/on", webSwitchRelayOn);
   WebServer.on("/2", webToggleRelay);
   WebServer.on("/toggle", webToggleRelay);
+  WebServer.on("/addEnergyCounter", addEnergyCounter);
+  WebServer.on("/resetEnergyCounter", resetEnergyCounter);
   WebServer.on("/getState", replyRelayState);
   WebServer.on("/bootConfigMode", setBootConfigMode);
   WebServer.on("/reboot", []() {
@@ -50,6 +52,33 @@ void initWebServerHandler() {
     WebServer.send(200, "text/plain", ret);
   });
   WebServer.onNotFound(defaultHtml);
+}
+
+void addEnergyCounter() {
+  if (GlobalConfig.SonoffModel != SonoffModel_Pow) {
+    WebServer.send(200, "text/plain", "Only for Sonoff POW");
+  } else {
+    if (WebServer.args() > 0) {
+      for (int i = 0; i < WebServer.args(); i++) {
+        if (WebServer.argName(i) == "value") {
+          String argValue = WebServer.arg(i);
+          argValue.replace(",", ".");
+          float prev_energy_counter = hlw8012value.energy_counter;
+          hlw8012value.energy_counter = hlw8012value.energy_counter + argValue.toFloat();
+          WebServer.send(200, "text/plain", "Old Energy Counter: "+String(prev_energy_counter)+"; Added Value: "+String(argValue.toFloat())+"; New Energy Counter: "+String(hlw8012value.energy_counter));
+        }
+      }
+    }
+  }
+}
+
+void resetEnergyCounter() {
+  if (GlobalConfig.SonoffModel != SonoffModel_Pow) {
+    WebServer.send(200, "text/plain", "Only for Sonoff POW");
+  } else {
+    hlw8012value.energy_counter = 0.0;
+    WebServer.send(200, "text/plain", "Energy Counter Reset OK");
+  }
 }
 
 void webSwitchRelayOn() {
