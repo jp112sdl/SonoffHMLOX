@@ -252,12 +252,6 @@ int WiFiManager::connectWifi(String ssid, String pass) {
   int connRes = waitForConnectResult();
   DEBUG_WM ("Connection result: ");
   DEBUG_WM ( connRes );
-  //not connected, WPS enabled, no pass - first attempt
-  if (_tryWPS && connRes != WL_CONNECTED && pass == "") {
-    startWPS();
-    //should be connected at the end of WPS
-    connRes = waitForConnectResult();
-  }
   return connRes;
 }
 
@@ -282,12 +276,6 @@ uint8_t WiFiManager::waitForConnectResult() {
     }
     return status;
   }
-}
-
-void WiFiManager::startWPS() {
-  DEBUG_WM("START WPS");
-  WiFi.beginWPSConfig();
-  DEBUG_WM("END WPS");
 }
 
 String WiFiManager::getConfigPortalSSID() {
