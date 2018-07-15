@@ -18,6 +18,7 @@
 #define JSONCONFIG_HLW_POWERMULTIPLIER     "hlw_powermultiplier"
 #define JSONCFONIG_GPIO14MODE              "gpio14mode"
 #define JSONCFONIG_GPIO14ASSENDER          "gpio14assender"
+#define JSONCONFIG_LOADECONBOOT            "loadEcOnBoot"
 
 bool loadSystemConfig() {
   DEBUG(F("loadSystemConfig mounting FS..."), "loadSystemConfig()", _slInformational);
@@ -64,6 +65,7 @@ bool loadSystemConfig() {
         GlobalConfig.GPIO14Mode = json[JSONCFONIG_GPIO14MODE];
         GlobalConfig.restoreOldRelayState = json[JSONCONFIG_RESTOREOLDSTATE];
         GlobalConfig.LEDDisabled = json[JSONCONFIG_LEDDISABLED];
+        GlobalConfig.loadEcOnBoot = json[JSONCONFIG_LOADECONBOOT];
         GlobalConfig.GPIO14asSender = json[JSONCFONIG_GPIO14ASSENDER];
         GlobalConfig.SonoffModel = json[JSONCONFIG_SONOFFMODEL];
         GlobalConfig.Hostname = "Sonoff-" + String(GlobalConfig.DeviceName);
@@ -113,6 +115,7 @@ bool saveSystemConfig() {
   json[JSONCONFIG_SONOFF] = GlobalConfig.DeviceName;
   json[JSONCONFIG_RESTOREOLDSTATE] = GlobalConfig.restoreOldRelayState;
   json[JSONCONFIG_LEDDISABLED] = GlobalConfig.LEDDisabled;
+  json[JSONCONFIG_LOADECONBOOT] = GlobalConfig.loadEcOnBoot;
   json[JSONCONFIG_BACKENDTYPE] = GlobalConfig.BackendType;
   //json[JSONCONFIG_LOXUSERNAME] = LoxoneConfig.Username;
   //json[JSONCONFIG_LOXPASSWORD] = LoxoneConfig.Password;
