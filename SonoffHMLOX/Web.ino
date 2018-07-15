@@ -28,6 +28,7 @@ void initWebServerHandler() {
   WebServer.on("/2", webToggleRelay);
   WebServer.on("/toggle", webToggleRelay);
   WebServer.on("/addEnergyCounter", addEnergyCounter);
+  WebServer.on("/enableEnergyCounterTransmission", enableEnergyCounterTransmission);
   WebServer.on("/resetEnergyCounter", resetEnergyCounter);
   WebServer.on("/getState", replyRelayState);
   WebServer.on("/bootConfigMode", setBootConfigMode);
@@ -65,9 +66,34 @@ void addEnergyCounter() {
           argValue.replace(",", ".");
           float prev_energy_counter = hlw8012value.energy_counter;
           hlw8012value.energy_counter = hlw8012value.energy_counter + argValue.toFloat();
-          WebServer.send(200, "text/plain", "Old Energy Counter: "+String(prev_energy_counter)+"; Added Value: "+String(argValue.toFloat())+"; New Energy Counter: "+String(hlw8012value.energy_counter));
+          WebServer.send(200, "text/plain", "Old Energy Counter: " + String(prev_energy_counter) + "; Added Value: " + String(argValue.toFloat()) + "; New Energy Counter: " + String(hlw8012value.energy_counter));
         }
       }
+    }
+  }
+}
+
+void enableEnergyCounterTransmission() {
+  if (GlobalConfig.SonoffModel != SonoffModel_Pow) {
+    WebServer.send(200, "text/plain", "Only for Sonoff POW");
+  } else {
+    if (!HomeMaticConfig.EnergyCounterVariableAvailable) {
+      if (WebServer.args() > 0) {
+        for (int i = 0; i < WebServer.args(); i++) {
+          if (WebServer.argName(i) == "load") {
+            bool setValue = WebServer.arg(i).toInt();
+            if (getEnergyCounterValueFromCCU(setValue)) {
+              WebServer.send(200, "text/plain", "Energy Counter enabled");
+            } else {
+              WebServer.send(200, "text/plain", "Energy Counter NOT enabled");
+            }
+          }
+        }
+      } else {
+        WebServer.send(200, "text/plain", "Energy Counter is already enabled");
+      }
+    } else {
+      WebServer.send(500, "text/plain", "Missing argument");
     }
   }
 }
@@ -80,7 +106,6 @@ void resetEnergyCounter() {
     WebServer.send(200, "text/plain", "Energy Counter Reset OK");
   }
 }
-
 void webSwitchRelayOn() {
   bool _transmitstate = NO_TRANSMITSTATE;
   if (WebServer.args() > 0) {
