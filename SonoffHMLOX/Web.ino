@@ -14,6 +14,7 @@ const char HTTP_CONF[] PROGMEM = "<div><label>{st}:</label></div><div><input typ
 const char HTTP_CONF_ADD_RESTORESTATE[] PROGMEM = "<div><label for='restorestate'>Schaltzustand bei Boot</label><span class='ckb cob'><select id='restorestate' name='restorestate'><option {restore_off} value='0'>Aus</option><option {restore_last} value='1'>letzter Zustand</option><option {restore_on} value='2'>Ein</option></select></span></div>";
 const char HTTP_CONF_ADD_SWITCH[] PROGMEM = "<hr /><div><label>Nur Sonoff Switch:</label><div id='div_gpio14mode'></div><label for='gpio14mode'>GPIO14 Mode</label><span class='ckb cob'><select id='gpio14mode' name='gpio14mode'><option {gpio14mode_off} value='0'>nicht verwendet</option><option {gpio14mode_key} value='1'>Taster</option><option {gpio14mode_switch_abs} value='2'>Schalter (absolut)</option><option {gpio14mode_switch_tog} value='3'>Schalter (toggle)</option></select></span></div><div><label class='lcb' for='gpio14assender'><input id='gpio14assender' class='cb' type='checkbox' name='gpio14assender' {gpio14assender} value=1> GPIO14 nur Sender</label><hr /></div>";
 const char HTTP_CONF_ADD_ALL[] PROGMEM = "<div><label class='lcb' for='leddisabled'><input id='leddisabled' class='cb' type='checkbox' name='leddisabled' {le} value=1> LED deaktiviert</label></div>";
+const char HTTP_CONF_POW_LOAD_EC_ON_BOOT[] PROGMEM = "<div><label class='lcb' for='loadeconboot'><input id='loadeconboot' class='cb' type='checkbox' name='loadeconboot' {lecb} value=1> Lade Energiez&auml;hler von CCU beim Starten</label></div>";
 const char HTTP_CONF_POW_MEASURE_INTERVAL[] PROGMEM = "<div></div><div><label>Messintervall</label></div><div><input type='text' id='measureinterval' name='measureinterval' placeholder='Messintervall' pattern='[0-9]{2,3}' value='{mi}'></div>";
 const char HTTP_CONF_LOX[] PROGMEM = "<div><label>UDP Port:</label></div><div><input type='text' id='lox_udpport' pattern='[0-9]{1,5}' maxlength='5' name='lox_udpport' placeholder='UDP Port' value='{udp}'></div>";
 const char HTTP_CONF_HM_POW[] PROGMEM  = "<div><label>Variable f&uuml;r Leistungswert:</label></div><div><input type='text' id='hmpowvar' name='hmpowvar' placeholder='Variablenname' value='{hmpowvar}' pattern='[A-Za-z0-9_ -]+'></div><div><label>Variable f&uuml;r Energiez&auml;hler:</label></div><div><input type='text' id='hmecvar' name='hmecvar' placeholder='Variablenname' value='{hmecvar}' pattern='[A-Za-z0-9_ -]+'></div>";
@@ -90,10 +91,10 @@ void enableEnergyCounterTransmission() {
           }
         }
       } else {
-        WebServer.send(200, "text/plain", "Energy Counter is already enabled");
+        WebServer.send(500, "text/plain", "Missing argument");
       }
     } else {
-      WebServer.send(500, "text/plain", "Missing argument");
+      WebServer.send(200, "text/plain", "Energy Counter is already enabled");
     }
   }
 }
@@ -294,6 +295,7 @@ void defaultHtml() {
   page.replace("{fw}", FIRMWARE_VERSION);
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     page += FPSTR(HTTP_CUSTOMPOWSCRIPT);
+    page.replace("{lecb}", ((GlobalConfig.loadEcOnBoot) ? "checked" : ""));
     page.replace("{mi}", String(GlobalConfig.MeasureInterval * 1000));
   }
 
@@ -308,6 +310,7 @@ void configHtml() {
   bool showHMDevError = false;
   if (WebServer.args() > 0) {
     GlobalConfig.restoreOldRelayState = RelayStateOnBoot_OFF;
+    GlobalConfig.loadEcOnBoot = false;
     GlobalConfig.LEDDisabled = false;
     GlobalConfig.GPIO14asSender = false;
     for (int i = 0; i < WebServer.args(); i++) {
@@ -329,6 +332,8 @@ void configHtml() {
         GlobalConfig.restoreOldRelayState = String(WebServer.arg(i)).toInt();
       if (WebServer.argName(i) == "leddisabled")
         GlobalConfig.LEDDisabled = (String(WebServer.arg(i)).toInt() == 1);
+      if (WebServer.argName(i) == "loadeconboot")
+        GlobalConfig.loadEcOnBoot = (String(WebServer.arg(i)).toInt() == 1);
       if (WebServer.argName(i) == "gpio14mode")
         GlobalConfig.GPIO14Mode = String(WebServer.arg(i)).toInt();
       if (WebServer.argName(i) == "gpio14assender")
@@ -422,6 +427,7 @@ void configHtml() {
   page += FPSTR(HTTP_CONF_ADD_ALL);
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+    page += FPSTR(HTTP_CONF_POW_LOAD_EC_ON_BOOT);
     page += FPSTR(HTTP_CONF_POW_MEASURE_INTERVAL);
   }
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
@@ -441,6 +447,7 @@ void configHtml() {
   }
 
   page.replace("{le}", ((GlobalConfig.LEDDisabled) ? "checked" : ""));
+  page.replace("{lecb}", ((GlobalConfig.loadEcOnBoot) ? "checked" : ""));
   page.replace("{dn}", GlobalConfig.DeviceName);
   page.replace("{ccuip}", GlobalConfig.ccuIP);
   page.replace("{mi}", String(GlobalConfig.MeasureInterval));
