@@ -127,14 +127,21 @@ void handleHLW8012() {
 bool getEnergyCounterValueFromCCU(bool setValue) {
   if (String(HomeMaticConfig.EnergyCounterVariableName) != "") {
     String sVal = getStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), "State");
-    DEBUG("getEnergyCounterValueFromCCU() Result: " + sVal);
     if (sVal == "null") {
+      DEBUG("HomeMaticConfig.EnergyCounterVariableAvailable = false");
       return false;
     } else {
-      if (setValue) hlw8012value.energy_counter = sVal.toFloat();
+      DEBUG("HomeMaticConfig.EnergyCounterVariableAvailable = true");
+      if (setValue) {
+        hlw8012value.energy_counter = sVal.toFloat();
+        DEBUG("-got value from ccu ("+String(sVal.toFloat())+")");
+      } else {
+        DEBUG("-not getting value from ccu");
+      }
       return true;
     }
   } else {
+    DEBUG("HomeMaticConfig.EnergyCounterVariableAvailable = false");
     return false;
   }
 }
