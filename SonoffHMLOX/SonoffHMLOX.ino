@@ -324,7 +324,7 @@ void setup() {
   }
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
-    switchLED(On);
+    switchLED(!GlobalConfig.LEDDisabled);
     HomeMaticConfig.EnergyCounterVariableAvailable = getEnergyCounterValueFromCCU(GlobalConfig.loadEcOnBoot);
   }
 
