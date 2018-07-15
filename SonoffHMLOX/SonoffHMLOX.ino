@@ -94,6 +94,7 @@ struct globalconfig_t {
   char DeviceName[VARIABLESIZE] = "";
   uint8_t restoreOldRelayState = RelayStateOnBoot_OFF;
   bool lastRelayState = false;
+  bool loadEcOnBoot = false;
   int  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
@@ -324,7 +325,7 @@ void setup() {
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     switchLED(On);
-    HomeMaticConfig.EnergyCounterVariableAvailable = getEnergyCounterValueFromCCU(true);
+    HomeMaticConfig.EnergyCounterVariableAvailable = getEnergyCounterValueFromCCU(GlobalConfig.loadEcOnBoot);
   }
 
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
