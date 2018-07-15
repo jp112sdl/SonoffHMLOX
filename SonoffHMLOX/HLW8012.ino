@@ -118,23 +118,24 @@ void handleHLW8012() {
     if (GlobalConfig.BackendType == BackendType_HomeMatic) {
       if (String(HomeMaticConfig.PowerVariableName) != "")
         setStateCUxD(String(HomeMaticConfig.PowerVariableName), String(hlw8012value.powerw));
-      if (String(HomeMaticConfig.EnergyCounterVariableName) != "")
+      if (String(HomeMaticConfig.EnergyCounterVariableName) != "" && HomeMaticConfig.EnergyCounterVariableAvailable)
         setStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), String(hlw8012value.energy_counter));
     }
   }
 }
 
-float getEnergyCounterValueFromCCU() {
+bool getEnergyCounterValueFromCCU(bool setValue) {
   if (String(HomeMaticConfig.EnergyCounterVariableName) != "") {
     String sVal = getStateCUxD(String(HomeMaticConfig.EnergyCounterVariableName), "State");
     DEBUG("getEnergyCounterValueFromCCU() Result: " + sVal);
     if (sVal == "null") {
-      return 0.0;
+      return false;
     } else {
-      return sVal.toFloat();
+      if (setValue) hlw8012value.energy_counter = sVal.toFloat();
+      return true;
     }
   } else {
-    return 0.0;
+    return false;
   }
 }
 
