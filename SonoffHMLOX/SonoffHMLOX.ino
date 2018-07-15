@@ -108,6 +108,7 @@ struct hmconfig_t {
   String ChannelNameSender = "";
   char PowerVariableName[VARIABLESIZE] = "";
   char EnergyCounterVariableName[VARIABLESIZE] = "";
+  bool EnergyCounterVariableAvailable = false;
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
@@ -323,7 +324,7 @@ void setup() {
 
   if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
     switchLED(On);
-    hlw8012value.energy_counter = getEnergyCounterValueFromCCU();
+    HomeMaticConfig.EnergyCounterVariableAvailable = getEnergyCounterValueFromCCU(true);
   }
 
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
