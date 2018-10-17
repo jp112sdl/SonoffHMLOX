@@ -10,6 +10,7 @@ Schaut euch auch das Youtube-Video [[Klick hier](https://www.youtube.com/watch?v
 Unterstützung weiterer Modelle:
 - eine Firmware für den Sonoff Dual / HVIO (als Schalt-Aktor) gibts [hier](https://github.com/jp112sdl/SonoffDualHVIOHMLOX) 
 - eine Firmware für den Sonoff Dual / HVIO (als Rollladen-Aktor) gibts [hier](https://github.com/jp112sdl/SonoffDualShutterHMLOX) 
+- eine Firmware für den Shelly 1 gibts [hier](https://github.com/jp112sdl/ShellyHMLOX/releases) (Einrichtungsanleitung wie bei Sonoffs, siehe Wiki)
 
 [![Github All Releases](https://img.shields.io/github/downloads/jp112sdl/SonoffHMLOX/total.svg)](https://github.com/jp112sdl/SonoffHMLOX/releases)
 [![GitHub issues](https://img.shields.io/github/issues/jp112sdl/SonoffHMLOX.svg)](https://github.com/jp112sdl/SonoffHMLOX/issues)
