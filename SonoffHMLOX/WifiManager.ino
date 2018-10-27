@@ -165,7 +165,7 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_gw);
 
     wifiManager.setConfigPortalTimeout(ConfigPortalTimeout);
-    
+
 
     if (startWifiManager == true) {
       if (_ssid == "" || _psk == "" ) {
@@ -185,7 +185,6 @@ bool doWifiConnect() {
     wifiManager.autoConnect();
 
     DEBUG(F("Wifi Connected"));
-    DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
     if (wm_shouldSaveConfig) {
       if (String(custom_ip.getValue()).length() > 5) {
         DEBUG("Custom IP Address is set!");
@@ -222,6 +221,7 @@ bool doWifiConnect() {
       delay(100);
       ESP.restart();
     }
+    DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
     return true;
   }
 }
