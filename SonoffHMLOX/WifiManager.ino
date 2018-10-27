@@ -3,7 +3,7 @@ bool doWifiConnect() {
   String _psk = WiFi.psk();
 
   String _pskMask = "";
-  for (int i = 0; i < _psk.length(); i++) {
+  for (uint8_t i = 0; i < _psk.length(); i++) {
     _pskMask += "*";
   }
   DEBUG("ssid = " + _ssid + ", psk = " + _pskMask);
@@ -165,6 +165,7 @@ bool doWifiConnect() {
     wifiManager.addParameter(&custom_gw);
 
     wifiManager.setConfigPortalTimeout(ConfigPortalTimeout);
+    
 
     if (startWifiManager == true) {
       if (_ssid == "" || _psk == "" ) {
@@ -251,4 +252,3 @@ void printWifiStatus() {
   DEBUG("Gateway Address: " + IpAddress2String(WiFi.gatewayIP()));
   DEBUG("signal strength (RSSI):" + String(WiFi.RSSI()) + " dBm");
 }
-

@@ -188,11 +188,12 @@ bool getLastRelayState() {
       }
     } else {
       DEBUG(F("getLastState SPIFFS mount fail!"), "getLastState()", _slCritical);
-      false;
+      return false;
     }
   } else {
     return false;
   }
+  return false;
 }
 
 void setBootConfigMode() {
@@ -213,4 +214,3 @@ void setBootConfigMode() {
     }
   }
 }
-

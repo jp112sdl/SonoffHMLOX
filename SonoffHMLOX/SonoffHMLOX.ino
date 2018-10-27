@@ -95,7 +95,7 @@ struct globalconfig_t {
   uint8_t restoreOldRelayState = RelayStateOnBoot_OFF;
   bool lastRelayState = false;
   bool loadEcOnBoot = false;
-  int  MeasureInterval = 10;
+  uint16_t  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   byte GPIO14Mode = GPIO14Mode_OFF;
@@ -366,7 +366,7 @@ void loop() {
     //eingehende UDP Kommandos abarbeiten
     String udpMessage = handleUDP();
     if (udpMessage == "bootConfigMode")
-      setBootConfigMode;
+      setBootConfigMode();
     if (udpMessage == "reboot")
       ESP.restart();
     if (udpMessage == "1" || udpMessage == "on")
@@ -409,5 +409,3 @@ void loop() {
     delay(10);
   }
 }
-
-
