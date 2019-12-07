@@ -33,7 +33,7 @@ bool loadSystemConfig() {
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        DynamicJsonDocument doc;
+        StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, buf.get());
         if (error) {
           DEBUG(F("loadSystemConfig JSON DeserializationError"), "loadSystemConfig()", _slInformational);
@@ -106,7 +106,7 @@ bool loadSystemConfig() {
 bool saveSystemConfig() {
   SPIFFS.begin();
   DEBUG(F("saving config"), "saveSystemConfig()", _slInformational);
-  DynamicJsonDocument doc;
+  StaticJsonDocument<1024> doc;
   JsonObject json = doc.to<JsonObject>();
   json[JSONCONFIG_IP] = SonoffNetConfig.ip;
   json[JSONCONFIG_NETMASK] = SonoffNetConfig.netmask;
