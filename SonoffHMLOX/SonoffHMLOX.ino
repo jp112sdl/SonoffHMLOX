@@ -5,6 +5,8 @@
   CPU Frequency: 80 MHz
   Flash Size: 1M (64k SPIFFS)
 */
+#define PUYA_SUPPORT 1
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
