@@ -88,6 +88,7 @@ void WiFiManager::addParameter(WiFiManagerParameter *p) {
 
 void WiFiManager::setupConfigPortal() {
   DEBUG_WM(F("Starting Web Portal"));
+  delay(2000);
   // setup dns and web servers
   dnsServer.reset(new DNSServer());
   server.reset(new ESP8266WebServer(80));
@@ -132,7 +133,7 @@ boolean WiFiManager::autoConnect(char const *apName, char const *apPassword) {
     return true;
   }
 
-  return startConfigPortal(apName);
+  return startConfigPortal();
 }
 
 boolean WiFiManager::configPortalHasTimeout() {
@@ -143,20 +144,15 @@ boolean WiFiManager::configPortalHasTimeout() {
   return (millis() > _configPortalStart + _configPortalTimeout);
 }
 
-boolean WiFiManager::startConfigPortal() {
-  String ssid = "Sonoff-" + String(ESP.getChipId());
-  return startConfigPortal(ssid.c_str());
-}
-
-boolean  WiFiManager::startConfigPortal(char const *apName) {
+boolean  WiFiManager::startConfigPortal() {
   //setup AP
+  String ssid = "Sonoff-" + String(WiFi.macAddress());
+  _apName = ssid.c_str();
   DEBUG_WM(F("Configuring access point... "));
   DEBUG_WM(_apName);
-  String ssid = "Sonoff-" + String(WiFi.macAddress());
   delay(100);
-  _apName = ssid.c_str();
-  WiFi.softAP(ssid.c_str());
-  WiFi.mode(WIFI_AP);
+  //WiFi.mode(WIFI_AP_STA);
+  WiFi.softAP(_apName);
   DEBUG_WM("SET AP");
 
 
@@ -167,8 +163,8 @@ boolean  WiFiManager::startConfigPortal(char const *apName) {
 
   connect = false;
   setupConfigPortal();
-  int lcount = 0;
   while (1) {
+    delay(5);
 
     // check if timeout
     if (configPortalHasTimeout()) break;
@@ -753,7 +749,7 @@ int WiFiManager::getRSSIasQuality(int RSSI) {
 
 /** Is this an IP? */
 boolean WiFiManager::isIp(String str) {
-  for (int i = 0; i < str.length(); i++) {
+  for (uint16_t i = 0; i < str.length(); i++) {
     int c = str.charAt(i);
     if (c != '.' && (c < '0' || c > '9')) {
       return false;

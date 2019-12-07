@@ -3,7 +3,7 @@ bool doWifiConnect() {
   String _psk = WiFi.psk();
 
   String _pskMask = "";
-  for (int i = 0; i < _psk.length(); i++) {
+  for (uint8_t i = 0; i < _psk.length(); i++) {
     _pskMask += "*";
   }
   DEBUG("ssid = " + _ssid + ", psk = " + _pskMask);
@@ -75,9 +75,7 @@ bool doWifiConnect() {
     }
     WiFiManagerParameter custom_restorestate("restorestate", "Schaltzustand bei Boot", "", 8, 2, strRestoreOldState.c_str());
 
-    char*chrLEDDisabled = "0";
-    if (GlobalConfig.LEDDisabled) chrLEDDisabled =  "1" ;
-    WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert: ", chrLEDDisabled, 8, 1);
+    WiFiManagerParameter custom_cbleddisabled("leddisabled_switch", "LED deaktiviert: ", (GlobalConfig.LEDDisabled) ? "1" : "0", 8, 1);
 
     WiFiManagerParameter custom_powervariablename("hmpowervariable_pow", "Variable f&uuml;r Leistung", HomeMaticConfig.PowerVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
     WiFiManagerParameter custom_ecvariablename("hmecvariable_pow", "Variable f&uuml;r Energiez&auml;hler", HomeMaticConfig.EnergyCounterVariableName, VARIABLESIZE, 0, "pattern='[A-Za-z0-9_ -]+'");
@@ -141,9 +139,7 @@ bool doWifiConnect() {
     }
     WiFiManagerParameter custom_gpio14mode("gpio14mode_switch", "GPIO14 Mode", "", 8, 2, gpio14.c_str());
 
-    char*chrGPIO14asSender = "0";
-    if (GlobalConfig.GPIO14asSender) chrGPIO14asSender =  "1" ;
-    WiFiManagerParameter custom_gpio14assender("custom_gpio14assender_switch", "GPIO14 nur Sender: ", chrGPIO14asSender, 8, 1);
+    WiFiManagerParameter custom_gpio14assender("custom_gpio14assender_switch", "GPIO14 nur Sender: ", (GlobalConfig.GPIO14asSender) ? "1" : "0", 8, 1);
 
     WiFiManagerParameter custom_ip("custom_ip", "IP-Adresse", (String(SonoffNetConfig.ip) != "0.0.0.0") ? SonoffNetConfig.ip : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
     WiFiManagerParameter custom_netmask("custom_netmask", "Netzmaske", (String(SonoffNetConfig.netmask) != "0.0.0.0") ? SonoffNetConfig.netmask : "", IPSIZE, 0, "pattern='((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}$'");
@@ -170,6 +166,7 @@ bool doWifiConnect() {
 
     wifiManager.setConfigPortalTimeout(ConfigPortalTimeout);
 
+
     if (startWifiManager == true) {
       if (_ssid == "" || _psk == "" ) {
         wifiManager.resetSettings();
@@ -188,7 +185,6 @@ bool doWifiConnect() {
     wifiManager.autoConnect();
 
     DEBUG(F("Wifi Connected"));
-    DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
     if (wm_shouldSaveConfig) {
       if (String(custom_ip.getValue()).length() > 5) {
         DEBUG("Custom IP Address is set!");
@@ -225,6 +221,7 @@ bool doWifiConnect() {
       delay(100);
       ESP.restart();
     }
+    DEBUG("CUSTOM STATIC IP: " + String(SonoffNetConfig.ip) + " Netmask: " + String(SonoffNetConfig.netmask) + " GW: " + String(SonoffNetConfig.gw));
     return true;
   }
 }
@@ -255,4 +252,3 @@ void printWifiStatus() {
   DEBUG("Gateway Address: " + IpAddress2String(WiFi.gatewayIP()));
   DEBUG("signal strength (RSSI):" + String(WiFi.RSSI()) + " dBm");
 }
-

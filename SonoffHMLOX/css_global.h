@@ -17,7 +17,7 @@ const char HTTP_ALL_STYLE[] PROGMEM = R"=====(
   } 
   
   .tdr {
-    float:right;
+    text-align: right;
   } 
   
   .tdl {

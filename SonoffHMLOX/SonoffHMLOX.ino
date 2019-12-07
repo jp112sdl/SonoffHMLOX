@@ -22,7 +22,7 @@
 #include "js_pow.h"
 #include "js_fwupd.h"
 
-const String FIRMWARE_VERSION = "1.0.27";
+const String FIRMWARE_VERSION = "1.0.28";
 //#define                       UDPDEBUG
 #define                       SERIALDEBUG
 
@@ -94,7 +94,8 @@ struct globalconfig_t {
   char DeviceName[VARIABLESIZE] = "";
   uint8_t restoreOldRelayState = RelayStateOnBoot_OFF;
   bool lastRelayState = false;
-  int  MeasureInterval = 10;
+  bool loadEcOnBoot = false;
+  uint16_t  MeasureInterval = 10;
   byte BackendType = BackendType_HomeMatic;
   byte SonoffModel = SonoffModel_Switch;
   byte GPIO14Mode = GPIO14Mode_OFF;
@@ -108,6 +109,7 @@ struct hmconfig_t {
   String ChannelNameSender = "";
   char PowerVariableName[VARIABLESIZE] = "";
   char EnergyCounterVariableName[VARIABLESIZE] = "";
+  bool EnergyCounterVariableAvailable = false;
 } HomeMaticConfig;
 
 struct loxoneconfig_t {
@@ -301,9 +303,6 @@ void setup() {
   UDPClient.UDP.begin(UDPPORT);
   UDPReady = true;
 
-  if (GlobalConfig.SonoffModel == SonoffModel_Pow)
-    switchLED(On);
-
   if (GlobalConfig.BackendType == BackendType_HomeMatic) {
     reloadCUxDAddress(NO_TRANSMITSTATE);
     byte tryCount = 0;
@@ -318,10 +317,15 @@ void setup() {
   }
 
   GlobalConfig.lastRelayState = getLastRelayState();
-  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || GlobalConfig.restoreOldRelayState == RelayStateOnBoot_ON){
+  if (((GlobalConfig.restoreOldRelayState == RelayStateOnBoot_LAST) && GlobalConfig.lastRelayState == true) || GlobalConfig.restoreOldRelayState == RelayStateOnBoot_ON) {
     switchRelay(RELAYSTATE_ON, TRANSMITSTATE);
   } else {
     switchRelay(RELAYSTATE_OFF, TRANSMITSTATE);
+  }
+
+  if (GlobalConfig.SonoffModel == SonoffModel_Pow) {
+    switchLED(!GlobalConfig.LEDDisabled);
+    HomeMaticConfig.EnergyCounterVariableAvailable = getEnergyCounterValueFromCCU(GlobalConfig.loadEcOnBoot);
   }
 
   DEBUG(String(GlobalConfig.DeviceName) + " - Boot abgeschlossen, SSID = " + WiFi.SSID() + ", IP = " + String(IpAddress2String(WiFi.localIP())) + ", RSSI = " + WiFi.RSSI() + ", MAC = " + WiFi.macAddress(), "Setup", _slInformational);
@@ -362,7 +366,7 @@ void loop() {
     //eingehende UDP Kommandos abarbeiten
     String udpMessage = handleUDP();
     if (udpMessage == "bootConfigMode")
-      setBootConfigMode;
+      setBootConfigMode();
     if (udpMessage == "reboot")
       ESP.restart();
     if (udpMessage == "1" || udpMessage == "on")
@@ -405,5 +409,3 @@ void loop() {
     delay(10);
   }
 }
-
-
