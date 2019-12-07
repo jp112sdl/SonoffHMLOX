@@ -1,4 +1,4 @@
-const char HTTP_ALL_STYLE[] PROGMEM = R"=====(
+const char WM_HTTP_ALL_STYLE[] PROGMEM = R"=====(
 <style>
   div {
     white-space: nowrap;
@@ -141,7 +141,7 @@ const char HTTP_ALL_STYLE[] PROGMEM = R"=====(
 </style>
 )=====";
 
-const char HTTP_HM_STYLE[]  PROGMEM = R"=====(
+const char WM_HTTP_HM_STYLE[]  PROGMEM = R"=====(
 <style>
   input.lnkbtn,button{
     background-color:#1fa3ec;
@@ -149,13 +149,10 @@ const char HTTP_HM_STYLE[]  PROGMEM = R"=====(
 </style>
 )=====";
 
-const char HTTP_LOX_STYLE[] PROGMEM = R"=====(
+const char WM_HTTP_LOX_STYLE[] PROGMEM = R"=====(
 <style>
   input.lnkbtn,button{
     background-color:#83b817;
   }
 </style>
 )=====";
-
-
-

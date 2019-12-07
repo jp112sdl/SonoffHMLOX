@@ -1,4 +1,4 @@
-const char HTTP_SCRIPT[] PROGMEM = R"=====(
+const char WM_HTTP_SCRIPT[] PROGMEM = R"=====(
 <script>
   function c(l) { 
     document.getElementById('s').value = l.innerText || l.textContent; document.getElementById('p').focus();
@@ -61,4 +61,3 @@ const char HTTP_SCRIPT[] PROGMEM = R"=====(
   }
 </script>
 )=====";
-

@@ -1,4 +1,4 @@
-const char HTTP_CUSTOMSCRIPT[] PROGMEM = R"=====(
+const char WM_HTTP_CUSTOMSCRIPT[] PROGMEM = R"=====(
 var timerRun = false; 
 
 function Get(u){ 

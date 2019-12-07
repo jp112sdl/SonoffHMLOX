@@ -1,4 +1,4 @@
-const char HTTP_STYLE[] PROGMEM = R"=====(
+const char WM_HTTP_STYLE[] PROGMEM = R"=====(
 <style>
   .c {
     text-align: center;
@@ -67,4 +67,3 @@ const char HTTP_STYLE[] PROGMEM = R"=====(
   }
 </style>
 )=====";
-

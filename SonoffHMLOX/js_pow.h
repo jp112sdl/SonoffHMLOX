@@ -1,4 +1,4 @@
-const char HTTP_CUSTOMPOWSCRIPT[] PROGMEM = R"=====(
+const char WM_HTTP_CUSTOMPOWSCRIPT[] PROGMEM = R"=====(
 setTimeout(function(){ refresh(); }, {mi}); 
 
 function refresh() { 
@@ -11,4 +11,3 @@ function refresh() {
   setTimeout(function(){ refresh() }, {mi}); 
 } 
 )=====";
-

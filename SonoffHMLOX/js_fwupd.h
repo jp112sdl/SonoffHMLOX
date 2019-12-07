@@ -1,4 +1,4 @@
-const char HTTP_CUSTOMUPDATESCRIPT[] PROGMEM = R"=====(
+const char WM_HTTP_CUSTOMUPDATESCRIPT[] PROGMEM = R"=====(
 function updateCheck() { 
   var json_obj = JSON.parse(Get('{fwjsurl}')); 
   if (json_obj.tag_name != '{fw}') {
@@ -12,4 +12,3 @@ function updateCheck() {
 setTimeout(function(){ updateCheck() }, 3000); 
 
 )=====";
-

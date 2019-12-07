@@ -321,18 +321,18 @@ void WiFiManager::handleRoot() {
     return;
   }
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Options");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += "<h1>";
   page += _apName;
   page += "</h1>";
   page += F("<center><h3>Konfigurationsportal</h3></center>");
-  page += FPSTR(HTTP_PORTAL_OPTIONS);
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_PORTAL_OPTIONS);
+  page += FPSTR(WM_HTTP_END);
 
   server->sendHeader("Content-Length", String(page.length()));
   server->send(200, "text/html", page);
@@ -342,12 +342,12 @@ void WiFiManager::handleRoot() {
 /** Wifi config page handler */
 void WiFiManager::handleWifi(boolean scan) {
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Config ESP");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
 
   if (scan) {
     int n = WiFi.scanNetworks();
@@ -402,7 +402,7 @@ void WiFiManager::handleWifi(boolean scan) {
         int quality = getRSSIasQuality(WiFi.RSSI(indices[i]));
 
         if (_minimumQuality == -1 || _minimumQuality < quality) {
-          String item = FPSTR(HTTP_ITEM);
+          String item = FPSTR(WM_HTTP_ITEM);
           String rssiQ;
           rssiQ += quality;
           item.replace("{v}", WiFi.SSID(indices[i]));
@@ -424,7 +424,7 @@ void WiFiManager::handleWifi(boolean scan) {
     }
   }
 
-  page += FPSTR(HTTP_FORM_START);
+  page += FPSTR(WM_HTTP_FORM_START);
   char parLength[2];
   // add the extra parameters to the form
   for (int i = 0; i < _paramsCount; i++) {
@@ -433,7 +433,7 @@ void WiFiManager::handleWifi(boolean scan) {
     }
 
     if (_params[i]->getType() == 0) {
-      String pitem = FPSTR(HTTP_FORM_PARAM_INPUT);
+      String pitem = FPSTR(WM_HTTP_FORM_PARAM_INPUT);
       if (_params[i]->getID() != NULL) {
         pitem.replace("{i}", _params[i]->getID());
         pitem.replace("{n}", _params[i]->getID());
@@ -448,7 +448,7 @@ void WiFiManager::handleWifi(boolean scan) {
       page += pitem;
     }
     if (_params[i]->getType() == 1) {
-      String pitem = FPSTR(HTTP_FORM_PARAM_CKB);
+      String pitem = FPSTR(WM_HTTP_FORM_PARAM_CKB);
       pitem.replace("{i}", _params[i]->getID());
       pitem.replace("{n}", _params[i]->getID());
       pitem.replace("{p}", _params[i]->getPlaceholder());
@@ -463,7 +463,7 @@ void WiFiManager::handleWifi(boolean scan) {
       page += pitem;
     }
     if (_params[i]->getType() == 2) {
-      String pitem = FPSTR(HTTP_FORM_PARAM_COB);
+      String pitem = FPSTR(WM_HTTP_FORM_PARAM_COB);
       pitem.replace("{i}", _params[i]->getID());
       pitem.replace("{n}", _params[i]->getID());
       pitem.replace("{p}", _params[i]->getPlaceholder());
@@ -474,7 +474,7 @@ void WiFiManager::handleWifi(boolean scan) {
       page += pitem;
     }
     if (_params[i]->getType() == 4) {
-      String pitem = FPSTR(HTTP_FORM_PARAM_PWD);
+      String pitem = FPSTR(WM_HTTP_FORM_PARAM_PWD);
       pitem.replace("{i}", _params[i]->getID());
       pitem.replace("{n}", _params[i]->getID());
       pitem.replace("{p}", _params[i]->getPlaceholder());
@@ -490,10 +490,10 @@ void WiFiManager::handleWifi(boolean scan) {
     page += "<br/>";
   }
 
-  page += FPSTR(HTTP_FORM_END);
-  page += FPSTR(HTTP_SCAN_LINK);
+  page += FPSTR(WM_HTTP_FORM_END);
+  page += FPSTR(WM_HTTP_SCAN_LINK);
 
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->sendHeader("Content-Length", String(page.length()));
   server->send(200, "text/html", page);
@@ -550,14 +550,14 @@ void WiFiManager::handleWifiSave() {
     optionalIPFromString(&_sta_static_sn, sn.c_str());
   }
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Credentials Saved");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
-  page += FPSTR(HTTP_SAVED);
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_SAVED);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -570,12 +570,12 @@ void WiFiManager::handleWifiSave() {
 void WiFiManager::handleInfo() {
   DEBUG_WM(F("Info"));
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Info");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("<dl>");
   page += F("<dt>Chip ID</dt><dd>");
   page += ESP.getChipId();
@@ -599,7 +599,7 @@ void WiFiManager::handleInfo() {
   page += WiFi.macAddress();
   page += F("</dd>");
   page += F("</dl>");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
 
   server->send(200, "text/html", page);
 
@@ -610,14 +610,14 @@ void WiFiManager::handleInfo() {
 void WiFiManager::handleReset() {
   DEBUG_WM(F("Restart"));
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Info");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += F("Sonoff startet in wenigen Sekunden neu...");
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
   server->sendHeader("Content-Length", String(page.length()));
   server->send(200, "text/html", page);
 
@@ -630,14 +630,14 @@ void WiFiManager::handleReset() {
 void WiFiManager::handleClearAllData() {
   DEBUG_WM(F("handleClearAllData"));
 
-  String page = FPSTR(HTTP_HEAD);
+  String page = FPSTR(WM_HTTP_HEAD);
   page.replace("{v}", "Clear All Data");
-  page += FPSTR(HTTP_SCRIPT);
-  page += FPSTR(HTTP_STYLE);
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
   page += _customHeadElement;
-  page += FPSTR(HTTP_HEAD_END);
+  page += FPSTR(WM_HTTP_HEAD_END);
   page += "<center><h1>Clearing all data...</h1><br>This can take a minute</center>";
-  page += FPSTR(HTTP_END);
+  page += FPSTR(WM_HTTP_END);
   server->send(200, "text/html", page);
 
 
